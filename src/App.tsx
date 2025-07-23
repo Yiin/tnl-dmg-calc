@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Build, Enemy, StatKey, DamageBreakdown } from "./types";
 import { BuildForm } from "./components/BuildForm";
 import { EnemyForm } from "./components/EnemyForm";
 import { DamageChart } from "./components/DamageChart";
 import { ChartControls } from "./components/ChartControls";
+import { serializeState, deserializeState } from "./utils/urlState";
 import { DamageBreakdownTooltip } from "./components/DamageBreakdownTooltip";
 import { ImportDialog } from "./components/ImportDialog";
 import { ConfirmDialog } from "./components/ConfirmDialog";
@@ -11,7 +12,7 @@ import { DamageFormula } from "./components/DamageFormula";
 import { SkillConfigForm } from "./components/SkillConfigForm";
 import { Button } from "./components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs";
-import { Trash2 } from "lucide-react";
+import { Trash2, Share2 } from "lucide-react";
 
 interface SkillConfig {
   skillPotency: number;
@@ -162,46 +163,64 @@ function selectSmartXAxisStat(
 }
 
 function App() {
-  const [builds, setBuilds] = useState<Build[]>(() =>
-    loadFromStorage(STORAGE_KEYS.builds, [])
-  );
-  const [enemy, setEnemy] = useState<Enemy>(() =>
-    loadFromStorage(STORAGE_KEYS.enemy, defaultEnemy)
-  );
-  const [xAxisStat, setXAxisStat] = useState<StatKey>(() =>
-    loadFromStorage(STORAGE_KEYS.xAxisStat, "meleeEndurance")
-  );
-  const [xAxisRange, setXAxisRange] = useState(() =>
-    loadFromStorage(STORAGE_KEYS.xAxisRange, {
-      min: 0,
-      max: 3000,
-      step: 100,
-    })
-  );
-  const [yMetric, setYMetric] = useState<
-    "expectedDamage" | "finalDamage" | "critChance" | "hitChance"
-  >(() => loadFromStorage(STORAGE_KEYS.yMetric, "expectedDamage"));
-  const [combatType, setCombatType] = useState<"melee" | "ranged" | "magic">(
-    () => loadFromStorage(STORAGE_KEYS.combatType, "melee")
-  );
-  const [attackDirection, setAttackDirection] = useState<
-    "front" | "side" | "back"
-  >(() => loadFromStorage(STORAGE_KEYS.attackDirection, "front"));
-  const [isPvP, setIsPvP] = useState<boolean>(() =>
-    loadFromStorage(STORAGE_KEYS.isPvP, true)
-  );
-  const [skillConfig, setSkillConfig] = useState<SkillConfig>(() =>
-    loadFromStorage(STORAGE_KEYS.skillConfig, defaultSkillConfig)
-  );
-  const [hoveredBreakdown, setHoveredBreakdown] =
-    useState<DamageBreakdown | null>(null);
+  // Check if we have a hash in the URL
+  const hasUrlHash = window.location.hash.length > 1;
+  
+  // Initialize state from URL hash if present, otherwise from localStorage
+  const getInitialState = useCallback(() => {
+    if (hasUrlHash) {
+      const hash = window.location.hash.substring(1);
+      const urlState = deserializeState(hash);
+      if (urlState) {
+        return {
+          builds: urlState.builds || [],
+          enemy: urlState.enemy || defaultEnemy,
+          xAxisStat: (urlState.xAxisStat || "meleeEndurance") as StatKey,
+          xAxisRange: urlState.xAxisRange || { min: 0, max: 3000, step: 100 },
+          yMetric: (urlState.yMetric || "expectedDamage") as "expectedDamage" | "finalDamage" | "critChance" | "hitChance",
+          combatType: (urlState.combatType || "melee") as "melee" | "ranged" | "magic",
+          attackDirection: (urlState.attackDirection || "front") as "front" | "side" | "back",
+          isPvP: urlState.isPvP !== undefined ? urlState.isPvP : true,
+          skillConfig: urlState.skillConfig || defaultSkillConfig,
+          activeBuildTab: urlState.activeBuildTab || "0",
+        };
+      }
+    }
+    
+    // Fall back to localStorage
+    return {
+      builds: loadFromStorage(STORAGE_KEYS.builds, []),
+      enemy: loadFromStorage(STORAGE_KEYS.enemy, defaultEnemy),
+      xAxisStat: loadFromStorage(STORAGE_KEYS.xAxisStat, "meleeEndurance") as StatKey,
+      xAxisRange: loadFromStorage(STORAGE_KEYS.xAxisRange, { min: 0, max: 3000, step: 100 }),
+      yMetric: loadFromStorage(STORAGE_KEYS.yMetric, "expectedDamage") as "expectedDamage" | "finalDamage" | "critChance" | "hitChance",
+      combatType: loadFromStorage(STORAGE_KEYS.combatType, "melee") as "melee" | "ranged" | "magic",
+      attackDirection: loadFromStorage(STORAGE_KEYS.attackDirection, "front") as "front" | "side" | "back",
+      isPvP: loadFromStorage(STORAGE_KEYS.isPvP, true),
+      skillConfig: loadFromStorage(STORAGE_KEYS.skillConfig, defaultSkillConfig),
+      activeBuildTab: loadFromStorage(STORAGE_KEYS.activeBuildTab, "0"),
+    };
+  }, [hasUrlHash]);
+
+  const initialState = getInitialState();
+  
+  const [builds, setBuilds] = useState<Build[]>(initialState.builds);
+  const [enemy, setEnemy] = useState<Enemy>(initialState.enemy);
+  const [xAxisStat, setXAxisStat] = useState<StatKey>(initialState.xAxisStat);
+  const [xAxisRange, setXAxisRange] = useState(initialState.xAxisRange);
+  const [yMetric, setYMetric] = useState<"expectedDamage" | "finalDamage" | "critChance" | "hitChance">(initialState.yMetric);
+  const [combatType, setCombatType] = useState<"melee" | "ranged" | "magic">(initialState.combatType);
+  const [attackDirection, setAttackDirection] = useState<"front" | "side" | "back">(initialState.attackDirection);
+  const [isPvP, setIsPvP] = useState<boolean>(initialState.isPvP);
+  const [skillConfig, setSkillConfig] = useState<SkillConfig>(initialState.skillConfig);
+  const [activeBuildTab, setActiveBuildTab] = useState<string>(initialState.activeBuildTab);
+  
+  const [hoveredBreakdown, setHoveredBreakdown] = useState<DamageBreakdown | null>(null);
   const [hoveredX, setHoveredX] = useState<number>(0);
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [showEnemyImportDialog, setShowEnemyImportDialog] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
-  const [activeBuildTab, setActiveBuildTab] = useState<string>(() =>
-    loadFromStorage(STORAGE_KEYS.activeBuildTab, "0")
-  );
+  const [showShareNotification, setShowShareNotification] = useState(false);
 
   const addBuild = () => {
     const newBuild: Build = {
@@ -257,11 +276,73 @@ function App() {
     });
   };
 
-  // Save to localStorage whenever state changes
-  useEffect(() => {
-    saveToStorage(STORAGE_KEYS.builds, builds);
+  const shareState = () => {
+    const currentState = {
+      builds,
+      enemy,
+      xAxisStat,
+      xAxisRange,
+      yMetric,
+      combatType,
+      attackDirection,
+      isPvP,
+      skillConfig,
+      activeBuildTab,
+    };
 
-    // Ensure active tab is valid
+    const hash = serializeState(currentState);
+    const url = `${window.location.origin}${window.location.pathname}#${hash}`;
+    
+    // Copy to clipboard
+    navigator.clipboard.writeText(url).then(() => {
+      setShowShareNotification(true);
+      setTimeout(() => setShowShareNotification(false), 3000);
+    }).catch((err) => {
+      console.error('Failed to copy URL:', err);
+    });
+  };
+
+  // Update URL hash or localStorage based on current mode
+  const updatePersistence = useCallback(() => {
+    const currentState = {
+      builds,
+      enemy,
+      xAxisStat,
+      xAxisRange,
+      yMetric,
+      combatType,
+      attackDirection,
+      isPvP,
+      skillConfig,
+      activeBuildTab,
+    };
+
+    if (window.location.hash.length > 1) {
+      // Update URL hash
+      const hash = serializeState(currentState);
+      window.history.replaceState(null, "", `#${hash}`);
+    } else {
+      // Update localStorage
+      saveToStorage(STORAGE_KEYS.builds, builds);
+      saveToStorage(STORAGE_KEYS.enemy, enemy);
+      saveToStorage(STORAGE_KEYS.xAxisStat, xAxisStat);
+      saveToStorage(STORAGE_KEYS.xAxisRange, xAxisRange);
+      saveToStorage(STORAGE_KEYS.yMetric, yMetric);
+      saveToStorage(STORAGE_KEYS.combatType, combatType);
+      saveToStorage(STORAGE_KEYS.attackDirection, attackDirection);
+      saveToStorage(STORAGE_KEYS.isPvP, isPvP);
+      saveToStorage(STORAGE_KEYS.skillConfig, skillConfig);
+      saveToStorage(STORAGE_KEYS.activeBuildTab, activeBuildTab);
+    }
+  }, [builds, enemy, xAxisStat, xAxisRange, yMetric, combatType, attackDirection, isPvP, skillConfig, activeBuildTab]);
+
+  // Persist state changes
+  useEffect(() => {
+    updatePersistence();
+  }, [updatePersistence]);
+
+  // Ensure active tab is valid
+  useEffect(() => {
     const currentTab = parseInt(activeBuildTab);
     if (
       builds.length === 0 ||
@@ -271,42 +352,6 @@ function App() {
       setActiveBuildTab("0");
     }
   }, [builds, activeBuildTab]);
-
-  useEffect(() => {
-    saveToStorage(STORAGE_KEYS.enemy, enemy);
-  }, [enemy]);
-
-  useEffect(() => {
-    saveToStorage(STORAGE_KEYS.xAxisStat, xAxisStat);
-  }, [xAxisStat]);
-
-  useEffect(() => {
-    saveToStorage(STORAGE_KEYS.xAxisRange, xAxisRange);
-  }, [xAxisRange]);
-
-  useEffect(() => {
-    saveToStorage(STORAGE_KEYS.yMetric, yMetric);
-  }, [yMetric]);
-
-  useEffect(() => {
-    saveToStorage(STORAGE_KEYS.combatType, combatType);
-  }, [combatType]);
-
-  useEffect(() => {
-    saveToStorage(STORAGE_KEYS.attackDirection, attackDirection);
-  }, [attackDirection]);
-
-  useEffect(() => {
-    saveToStorage(STORAGE_KEYS.activeBuildTab, activeBuildTab);
-  }, [activeBuildTab]);
-
-  useEffect(() => {
-    saveToStorage(STORAGE_KEYS.isPvP, isPvP);
-  }, [isPvP]);
-
-  useEffect(() => {
-    saveToStorage(STORAGE_KEYS.skillConfig, skillConfig);
-  }, [skillConfig]);
 
   // Auto-detect combat type when active build changes
   useEffect(() => {
@@ -343,6 +388,14 @@ function App() {
             <div className="flex flex-col gap-3">
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-semibold">Build Configuration</h2>
+                <Button
+                  onClick={shareState}
+                  variant="outline"
+                  size="sm"
+                  className="h-8"
+                >
+                  <Share2 className="h-4 w-4" />
+                </Button>
               </div>
               <div className="flex gap-2">
                 <Button onClick={addBuild} size="sm" className="flex-1 py-6">
@@ -536,6 +589,12 @@ function App() {
         confirmText="Clear All"
         confirmVariant="destructive"
       />
+      
+      {showShareNotification && (
+        <div className="fixed bottom-4 right-4 bg-primary text-primary-foreground px-4 py-2 rounded-md shadow-lg animate-in slide-in-from-bottom-2 duration-300">
+          URL copied to clipboard!
+        </div>
+      )}
     </div>
   );
 }

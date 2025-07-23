@@ -347,7 +347,13 @@ export function calculateDPS(
   castTime: number = 1,
   isPVP: boolean = true
 ): number {
-  const damage = calculateDamage(build, enemy, combatType, attackDirection, isPVP);
+  const damage = calculateDamage(
+    build,
+    enemy,
+    combatType,
+    attackDirection,
+    isPVP
+  );
   const effectiveCooldown = Math.max(cooldownTime, castTime);
   return damage.expectedDamage / effectiveCooldown;
 }

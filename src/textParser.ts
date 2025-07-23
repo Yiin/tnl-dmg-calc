@@ -50,10 +50,12 @@ export function parseTextToBuild(
         }
       : {}),
 
+    // PvE
+    speciesDamageBoost: parseStatValue(stats["Species Damage Boost"]),
+    pveDamageMultiplier: parsePercentage(stats["PVE Damage Multiplier"]),
+
     // Attack stats
     bonusDamage: parseStatValue(stats["Bonus Damage"]),
-    attackSpeed: parseAttackSpeed(stats),
-    attackSpeedPercent: parseAttackSpeedPercent(stats),
 
     // Critical stats
     rangedCritical: parseStatValue(stats["Ranged Critical Hit Chance"]),
@@ -73,43 +75,14 @@ export function parseTextToBuild(
 
     // Skill stats
     skillDamageBoost: parseStatValue(stats["Skill Damage Boost"]),
-    cooldownSpeed: parsePercentage(stats["Cooldown Speed"]),
 
     // Off-hand chance
     offhandChance:
       (parsePercentage(stats["Off-Hand Weapon Attack Chance"]) || 0) / 100,
 
-    // Attributes
-    strength: parseStatValue(stats["Strength"]),
-    dexterity: parseStatValue(stats["Dexterity"]),
-    wisdom: parseStatValue(stats["Wisdom"]),
-    perception: parseStatValue(stats["Perception"]),
-    fortitude: parseStatValue(stats["Fortitude"]),
-
-    // Resources
-    maxHealth: parseStatValue(stats["Max Health"]),
-    healthRegen: parseStatValue(stats["Health Regen"]),
-    maxMana: parseStatValue(stats["Max Mana"]),
-    manaRegen: parseStatValue(stats["Mana Regen"]),
-    manaCostEfficiency: parsePercentage(stats["Mana Cost Efficiency"]),
-
-    // Movement
-    movementSpeed: parsePercentage(stats["Movement Speed"]),
-    maxStamina: parseStatValue(stats["Max Stamina"]),
-    staminaRegen: parseStatValue(stats["Stamina Regen"]),
-
-    // Buffs/Debuffs
-    healingReceived: parsePercentage(stats["Healing Received"]),
-    buffDuration: parsePercentage(stats["Buff Duration"]),
-    debuffDuration: parsePercentage(stats["Debuff Duration"]),
-
-    // Other stats
-    speciesDamageBoost: parseStatValue(stats["Species Damage Boost"]),
-    weaponDamage: parsePercentage(stats["Weapon Damage"]),
     shieldBlockPenetrationChance: parsePercentage(
       stats["Shield Block Penetration Chance"]
     ),
-    ccChance: parseStatValue(stats["CC Chance"]),
 
     // Defense stats
     meleeDefense: parseStatValue(stats["Melee Defense"]),
@@ -140,7 +113,7 @@ export function parseTextToBuild(
     // Resistance stats
     damageReduction: parseStatValue(stats["Damage Reduction"]),
     skillDamageResistance: parseStatValue(stats["Skill Damage Resistance"]),
-    
+
     // Positional stats
     backHitChance: parseStatValue(stats["Back Hit Chance"]),
     sideHitChance: parseStatValue(stats["Side Hit Chance"]),

@@ -351,20 +351,6 @@ export const BuildForm: React.FC<BuildFormProps> = ({
               />
             </div>
             <div className="space-y-1">
-              <Label htmlFor="cooldownSpeed" className="text-xs">
-                Cooldown Speed
-              </Label>
-              <Input
-                id="cooldownSpeed"
-                type="number"
-                value={build.cooldownSpeed || 0}
-                onChange={(e) =>
-                  handleInputChange("cooldownSpeed", e.target.value)
-                }
-                className="h-8 text-xs"
-              />
-            </div>
-            <div className="space-y-1">
               <Label htmlFor="hitsPerCast" className="text-xs">
                 Hits Per Cast
               </Label>
@@ -430,6 +416,20 @@ export const BuildForm: React.FC<BuildFormProps> = ({
               />
             </div>
             <div className="space-y-1">
+              <Label htmlFor="sideHitChance" className="text-xs">
+                Side Hit Chance
+              </Label>
+              <Input
+                id="sideHitChance"
+                type="number"
+                value={build.sideHitChance || 0}
+                onChange={(e) =>
+                  handleInputChange("sideHitChance", e.target.value)
+                }
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="space-y-1">
               <Label htmlFor="backHeavyAttackChance" className="text-xs">
                 Back Heavy Attack Chance
               </Label>
@@ -444,6 +444,20 @@ export const BuildForm: React.FC<BuildFormProps> = ({
               />
             </div>
             <div className="space-y-1">
+              <Label htmlFor="sideHeavyAttackChance" className="text-xs">
+                Side Heavy Attack Chance
+              </Label>
+              <Input
+                id="sideHeavyAttackChance"
+                type="number"
+                value={build.sideHeavyAttackChance || 0}
+                onChange={(e) =>
+                  handleInputChange("sideHeavyAttackChance", e.target.value)
+                }
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="space-y-1">
               <Label htmlFor="backCriticalHit" className="text-xs">
                 Back Critical Hit
               </Label>
@@ -453,6 +467,20 @@ export const BuildForm: React.FC<BuildFormProps> = ({
                 value={build.backCriticalHit || 0}
                 onChange={(e) =>
                   handleInputChange("backCriticalHit", e.target.value)
+                }
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="sideCriticalHit" className="text-xs">
+                Side Critical Hit
+              </Label>
+              <Input
+                id="sideCriticalHit"
+                type="number"
+                value={build.sideCriticalHit || 0}
+                onChange={(e) =>
+                  handleInputChange("sideCriticalHit", e.target.value)
                 }
                 className="h-8 text-xs"
               />

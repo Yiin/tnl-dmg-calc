@@ -65,13 +65,14 @@ const defaultEnemy: Enemy = {
 // Local storage keys
 const STORAGE_KEYS = {
   builds: "tnl-damage-calc-builds",
-  enemy: "tnl-damage-calc-enemy",
+  enemies: "tnl-damage-calc-enemies",
   xAxisStat: "tnl-damage-calc-x-axis-stat",
   xAxisRange: "tnl-damage-calc-x-axis-range",
   yMetric: "tnl-damage-calc-y-metric",
   combatType: "tnl-damage-calc-combat-type",
   attackDirection: "tnl-damage-calc-attack-direction",
   activeBuildTab: "tnl-damage-calc-active-build-tab",
+  activeEnemyTab: "tnl-damage-calc-active-enemy-tab",
   isPvP: "tnl-damage-calc-is-pvp",
   skillConfig: "tnl-damage-calc-skill-config",
 };
@@ -165,7 +166,7 @@ function selectSmartXAxisStat(
 function App() {
   // Check if we have a hash in the URL
   const hasUrlHash = window.location.hash.length > 1;
-  
+
   // Initialize state from URL hash if present, otherwise from localStorage
   const getInitialState = useCallback(() => {
     if (hasUrlHash) {
@@ -174,48 +175,98 @@ function App() {
       if (urlState) {
         return {
           builds: urlState.builds || [],
-          enemy: urlState.enemy || defaultEnemy,
+          enemies: urlState.enemies || (urlState.enemy ? [urlState.enemy] : []),
           xAxisStat: (urlState.xAxisStat || "meleeEndurance") as StatKey,
           xAxisRange: urlState.xAxisRange || { min: 0, max: 3000, step: 100 },
-          yMetric: (urlState.yMetric || "expectedDamage") as "expectedDamage" | "finalDamage" | "critChance" | "hitChance",
-          combatType: (urlState.combatType || "melee") as "melee" | "ranged" | "magic",
-          attackDirection: (urlState.attackDirection || "front") as "front" | "side" | "back",
+          yMetric: (urlState.yMetric || "expectedDamage") as
+            | "expectedDamage"
+            | "finalDamage"
+            | "critChance"
+            | "hitChance",
+          combatType: (urlState.combatType || "melee") as
+            | "melee"
+            | "ranged"
+            | "magic",
+          attackDirection: (urlState.attackDirection || "front") as
+            | "front"
+            | "side"
+            | "back",
           isPvP: urlState.isPvP !== undefined ? urlState.isPvP : true,
           skillConfig: urlState.skillConfig || defaultSkillConfig,
           activeBuildTab: urlState.activeBuildTab || "0",
+          activeEnemyTab: urlState.activeEnemyTab || "0",
         };
       }
     }
-    
+
     // Fall back to localStorage
+    const legacyEnemy = loadFromStorage("tnl-damage-calc-enemy", null);
     return {
       builds: loadFromStorage(STORAGE_KEYS.builds, []),
-      enemy: loadFromStorage(STORAGE_KEYS.enemy, defaultEnemy),
-      xAxisStat: loadFromStorage(STORAGE_KEYS.xAxisStat, "meleeEndurance") as StatKey,
-      xAxisRange: loadFromStorage(STORAGE_KEYS.xAxisRange, { min: 0, max: 3000, step: 100 }),
-      yMetric: loadFromStorage(STORAGE_KEYS.yMetric, "expectedDamage") as "expectedDamage" | "finalDamage" | "critChance" | "hitChance",
-      combatType: loadFromStorage(STORAGE_KEYS.combatType, "melee") as "melee" | "ranged" | "magic",
-      attackDirection: loadFromStorage(STORAGE_KEYS.attackDirection, "front") as "front" | "side" | "back",
+      enemies: loadFromStorage(
+        STORAGE_KEYS.enemies,
+        legacyEnemy ? [legacyEnemy] : []
+      ),
+      xAxisStat: loadFromStorage(
+        STORAGE_KEYS.xAxisStat,
+        "meleeEndurance"
+      ) as StatKey,
+      xAxisRange: loadFromStorage(STORAGE_KEYS.xAxisRange, {
+        min: 0,
+        max: 3000,
+        step: 100,
+      }),
+      yMetric: loadFromStorage(STORAGE_KEYS.yMetric, "expectedDamage") as
+        | "expectedDamage"
+        | "finalDamage"
+        | "critChance"
+        | "hitChance",
+      combatType: loadFromStorage(STORAGE_KEYS.combatType, "melee") as
+        | "melee"
+        | "ranged"
+        | "magic",
+      attackDirection: loadFromStorage(
+        STORAGE_KEYS.attackDirection,
+        "front"
+      ) as "front" | "side" | "back",
       isPvP: loadFromStorage(STORAGE_KEYS.isPvP, true),
-      skillConfig: loadFromStorage(STORAGE_KEYS.skillConfig, defaultSkillConfig),
+      skillConfig: loadFromStorage(
+        STORAGE_KEYS.skillConfig,
+        defaultSkillConfig
+      ),
       activeBuildTab: loadFromStorage(STORAGE_KEYS.activeBuildTab, "0"),
+      activeEnemyTab: loadFromStorage(STORAGE_KEYS.activeEnemyTab, "0"),
     };
   }, [hasUrlHash]);
 
   const initialState = getInitialState();
-  
+
   const [builds, setBuilds] = useState<Build[]>(initialState.builds);
-  const [enemy, setEnemy] = useState<Enemy>(initialState.enemy);
+  const [enemies, setEnemies] = useState<Enemy[]>(initialState.enemies);
   const [xAxisStat, setXAxisStat] = useState<StatKey>(initialState.xAxisStat);
   const [xAxisRange, setXAxisRange] = useState(initialState.xAxisRange);
-  const [yMetric, setYMetric] = useState<"expectedDamage" | "finalDamage" | "critChance" | "hitChance">(initialState.yMetric);
-  const [combatType, setCombatType] = useState<"melee" | "ranged" | "magic">(initialState.combatType);
-  const [attackDirection, setAttackDirection] = useState<"front" | "side" | "back">(initialState.attackDirection);
+  const [yMetric, setYMetric] = useState<
+    "expectedDamage" | "finalDamage" | "critChance" | "hitChance"
+  >(initialState.yMetric);
+  const [combatType, setCombatType] = useState<"melee" | "ranged" | "magic">(
+    initialState.combatType
+  );
+  const [attackDirection, setAttackDirection] = useState<
+    "front" | "side" | "back"
+  >(initialState.attackDirection);
   const [isPvP, setIsPvP] = useState<boolean>(initialState.isPvP);
-  const [skillConfig, setSkillConfig] = useState<SkillConfig>(initialState.skillConfig);
-  const [activeBuildTab, setActiveBuildTab] = useState<string>(initialState.activeBuildTab);
-  
-  const [hoveredBreakdown, setHoveredBreakdown] = useState<DamageBreakdown | null>(null);
+  const [skillConfig, setSkillConfig] = useState<SkillConfig>(
+    initialState.skillConfig
+  );
+  const [activeBuildTab, setActiveBuildTab] = useState<string>(
+    initialState.activeBuildTab
+  );
+  const [activeEnemyTab, setActiveEnemyTab] = useState<string>(
+    initialState.activeEnemyTab
+  );
+
+  const [hoveredBreakdown, setHoveredBreakdown] =
+    useState<DamageBreakdown | null>(null);
   const [hoveredX, setHoveredX] = useState<number>(0);
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [showEnemyImportDialog, setShowEnemyImportDialog] = useState(false);
@@ -257,13 +308,44 @@ function App() {
     setActiveBuildTab(builds.length.toString()); // Switch to the imported build tab
   };
 
+  const addEnemy = () => {
+    const newEnemy: Enemy = {
+      ...defaultEnemy,
+      name: `Enemy ${enemies.length + 1}`,
+    };
+    setEnemies([...enemies, newEnemy]);
+    setActiveEnemyTab(enemies.length.toString()); // Switch to the new tab
+  };
+
+  const updateEnemy = (index: number, enemy: Enemy) => {
+    const newEnemies = [...enemies];
+    newEnemies[index] = enemy;
+    setEnemies(newEnemies);
+  };
+
+  const removeEnemy = (index: number) => {
+    if (enemies.length > 1) {
+      const newEnemies = enemies.filter((_, i) => i !== index);
+      setEnemies(newEnemies);
+
+      // Adjust active tab if necessary
+      const currentTab = parseInt(activeEnemyTab);
+      if (currentTab >= newEnemies.length) {
+        setActiveEnemyTab((newEnemies.length - 1).toString());
+      } else if (currentTab > index) {
+        setActiveEnemyTab((currentTab - 1).toString());
+      }
+    }
+  };
+
   const importEnemy = (enemy: Enemy) => {
-    setEnemy(enemy);
+    setEnemies([...enemies, enemy]);
+    setActiveEnemyTab(enemies.length.toString()); // Switch to the imported enemy tab
   };
 
   const clearAll = () => {
     setBuilds([]);
-    setEnemy(defaultEnemy);
+    setEnemies([]);
     setXAxisStat("meleeEndurance");
     setXAxisRange({ min: 0, max: 3000, step: 100 });
     setYMetric("expectedDamage");
@@ -274,12 +356,14 @@ function App() {
     Object.values(STORAGE_KEYS).forEach((key) => {
       localStorage.removeItem(key);
     });
+    // Also clear legacy enemy key
+    localStorage.removeItem("tnl-damage-calc-enemy");
   };
 
   const shareState = () => {
     const currentState = {
       builds,
-      enemy,
+      enemies,
       xAxisStat,
       xAxisRange,
       yMetric,
@@ -288,25 +372,29 @@ function App() {
       isPvP,
       skillConfig,
       activeBuildTab,
+      activeEnemyTab,
     };
 
     const hash = serializeState(currentState);
     const url = `${window.location.origin}${window.location.pathname}#${hash}`;
-    
+
     // Copy to clipboard
-    navigator.clipboard.writeText(url).then(() => {
-      setShowShareNotification(true);
-      setTimeout(() => setShowShareNotification(false), 3000);
-    }).catch((err) => {
-      console.error('Failed to copy URL:', err);
-    });
+    navigator.clipboard
+      .writeText(url)
+      .then(() => {
+        setShowShareNotification(true);
+        setTimeout(() => setShowShareNotification(false), 3000);
+      })
+      .catch((err) => {
+        console.error("Failed to copy URL:", err);
+      });
   };
 
   // Update URL hash or localStorage based on current mode
   const updatePersistence = useCallback(() => {
     const currentState = {
       builds,
-      enemy,
+      enemies,
       xAxisStat,
       xAxisRange,
       yMetric,
@@ -315,6 +403,7 @@ function App() {
       isPvP,
       skillConfig,
       activeBuildTab,
+      activeEnemyTab,
     };
 
     if (window.location.hash.length > 1) {
@@ -324,7 +413,7 @@ function App() {
     } else {
       // Update localStorage
       saveToStorage(STORAGE_KEYS.builds, builds);
-      saveToStorage(STORAGE_KEYS.enemy, enemy);
+      saveToStorage(STORAGE_KEYS.enemies, enemies);
       saveToStorage(STORAGE_KEYS.xAxisStat, xAxisStat);
       saveToStorage(STORAGE_KEYS.xAxisRange, xAxisRange);
       saveToStorage(STORAGE_KEYS.yMetric, yMetric);
@@ -333,8 +422,21 @@ function App() {
       saveToStorage(STORAGE_KEYS.isPvP, isPvP);
       saveToStorage(STORAGE_KEYS.skillConfig, skillConfig);
       saveToStorage(STORAGE_KEYS.activeBuildTab, activeBuildTab);
+      saveToStorage(STORAGE_KEYS.activeEnemyTab, activeEnemyTab);
     }
-  }, [builds, enemy, xAxisStat, xAxisRange, yMetric, combatType, attackDirection, isPvP, skillConfig, activeBuildTab]);
+  }, [
+    builds,
+    enemies,
+    xAxisStat,
+    xAxisRange,
+    yMetric,
+    combatType,
+    attackDirection,
+    isPvP,
+    skillConfig,
+    activeBuildTab,
+    activeEnemyTab,
+  ]);
 
   // Persist state changes
   useEffect(() => {
@@ -362,11 +464,32 @@ function App() {
     }
   }, [activeBuildTab, builds]);
 
+  // Ensure active enemy tab is valid
+  useEffect(() => {
+    const currentTab = parseInt(activeEnemyTab);
+    if (
+      enemies.length === 0 ||
+      currentTab >= enemies.length ||
+      isNaN(currentTab)
+    ) {
+      setActiveEnemyTab("0");
+    }
+  }, [enemies, activeEnemyTab]);
+
   // Auto-select X-axis stat based on enemy stats and combat type
   useEffect(() => {
-    const smartStat = selectSmartXAxisStat(enemy, combatType);
-    setXAxisStat(smartStat);
-  }, [enemy, combatType]);
+    const currentTabIndex = parseInt(activeEnemyTab);
+    if (!isNaN(currentTabIndex) && enemies[currentTabIndex]) {
+      const smartStat = selectSmartXAxisStat(
+        enemies[currentTabIndex],
+        combatType
+      );
+      setXAxisStat(smartStat);
+    }
+  }, [enemies, activeEnemyTab, combatType]);
+
+  // Get current enemy
+  const currentEnemy = enemies[parseInt(activeEnemyTab)] || defaultEnemy;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -495,7 +618,7 @@ function App() {
           <div className="min-h-[500px]">
             <DamageChart
               builds={builds}
-              enemy={enemy}
+              enemy={currentEnemy}
               xAxisStat={xAxisStat}
               xAxisRange={xAxisRange}
               yMetric={yMetric}
@@ -515,7 +638,7 @@ function App() {
           {builds.length > 0 && builds[parseInt(activeBuildTab)] && (
             <DamageFormula
               build={builds[parseInt(activeBuildTab)]}
-              enemy={enemy}
+              enemy={currentEnemy}
               combatType={combatType}
               attackDirection={attackDirection}
               isPvP={isPvP}
@@ -528,13 +651,65 @@ function App() {
 
         {/* Right sidebar with enemy configuration */}
         <div className="lg:col-span-1 space-y-6 overflow-y-auto">
-          <div>
-            <h2 className="text-xl font-semibold mb-4">Enemy Configuration</h2>
-            <EnemyForm
-              enemy={enemy}
-              onChange={setEnemy}
-              onImport={() => setShowEnemyImportDialog(true)}
-            />
+          <div className="space-y-4">
+            <h2 className="text-xl font-semibold">Enemy Configuration</h2>
+            <div className="flex gap-2">
+              <Button onClick={addEnemy} size="sm" className="flex-1 py-6">
+                Add Enemy
+              </Button>
+              <Button
+                onClick={() => setShowEnemyImportDialog(true)}
+                variant="outline"
+                size="sm"
+                className="flex-1 py-6"
+              >
+                Import Enemy
+              </Button>
+            </div>
+
+            {enemies.length > 0 && (
+              <Tabs
+                value={activeEnemyTab}
+                onValueChange={setActiveEnemyTab}
+                className="w-full"
+              >
+                <TabsList
+                  className="grid w-full"
+                  style={{
+                    gridTemplateColumns: `repeat(${enemies.length}, 1fr)`,
+                  }}
+                >
+                  {enemies.map((enemy, index) => (
+                    <TabsTrigger
+                      key={index}
+                      value={index.toString()}
+                      className="text-xs"
+                    >
+                      {enemy.name || `Enemy ${index + 1}`}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+                {enemies.map((enemy, index) => (
+                  <TabsContent
+                    key={index}
+                    value={index.toString()}
+                    className="mt-4"
+                  >
+                    <EnemyForm
+                      enemy={enemy}
+                      onChange={(updatedEnemy) =>
+                        updateEnemy(index, updatedEnemy)
+                      }
+                      onRemove={
+                        enemies.length > 1
+                          ? () => removeEnemy(index)
+                          : undefined
+                      }
+                    />
+                  </TabsContent>
+                ))}
+              </Tabs>
+            )}
           </div>
         </div>
       </div>
@@ -589,7 +764,7 @@ function App() {
         confirmText="Clear All"
         confirmVariant="destructive"
       />
-      
+
       {showShareNotification && (
         <div className="fixed bottom-4 right-4 bg-primary text-primary-foreground px-4 py-2 rounded-md shadow-lg animate-in slide-in-from-bottom-2 duration-300">
           URL copied to clipboard!

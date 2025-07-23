@@ -128,12 +128,27 @@ export const DamageChart: React.FC<DamageChartProps> = ({
 
   const formatTooltip = (
     value: number,
-    _name: string,
-    _item: any,
-    index: number
+    name: string,
+    item: any
   ) => {
-    const buildName = builds[index]?.name || `Build ${index + 1}`;
+    // The name parameter is the display name from the Line component
+    // We need to find which build this corresponds to
+    const buildIndex = builds.findIndex(build => (build.name || `Build ${builds.indexOf(build) + 1}`) === name);
+    
+    if (buildIndex === -1) {
+      // Fallback: try to extract from dataKey if name doesn't match
+      const dataKey = item?.dataKey;
+      if (dataKey && dataKey.startsWith('build')) {
+        const index = parseInt(dataKey.replace('build', ''));
+        const buildName = builds[index]?.name || `Build ${index + 1}`;
+        if (yMetric.includes("Chance")) {
+          return [`${(value * 100).toFixed(1)}%`, buildName];
+        }
+        return [value.toFixed(0), buildName];
+      }
+    }
 
+    const buildName = builds[buildIndex]?.name || `Build ${buildIndex + 1}`;
     if (yMetric.includes("Chance")) {
       return [`${(value * 100).toFixed(1)}%`, buildName];
     }

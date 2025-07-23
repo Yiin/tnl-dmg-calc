@@ -28,14 +28,14 @@ export const BuildForm: React.FC<BuildFormProps> = ({
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-6">
         <CardTitle className="text-lg">
           <Input
             type="text"
             value={build.name}
             onChange={(e) => handleNameChange(e.target.value)}
             placeholder="Build Name"
-            className="font-semibold border-none bg-transparent p-0 text-lg focus:ring-0"
+            className="font-semibold bg-transparent px-2 py-6 md:text-3xl focus:ring-0"
           />
         </CardTitle>
         {onRemove && (
@@ -50,7 +50,7 @@ export const BuildForm: React.FC<BuildFormProps> = ({
         )}
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="space-y-4">
+        <div className="space-y-2">
           <h4 className="text-sm font-medium text-muted-foreground">
             Weapon Damage
           </h4>
@@ -142,7 +142,7 @@ export const BuildForm: React.FC<BuildFormProps> = ({
           </div>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-2">
           <h4 className="text-sm font-medium text-muted-foreground">
             Critical Hit
           </h4>
@@ -207,7 +207,7 @@ export const BuildForm: React.FC<BuildFormProps> = ({
           </div>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-2">
           <h4 className="text-sm font-medium text-muted-foreground">
             Heavy Attack
           </h4>
@@ -257,7 +257,7 @@ export const BuildForm: React.FC<BuildFormProps> = ({
           </div>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-2">
           <h4 className="text-sm font-medium text-muted-foreground">
             Hit Chance
           </h4>
@@ -301,7 +301,7 @@ export const BuildForm: React.FC<BuildFormProps> = ({
           </div>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-2">
           <h4 className="text-sm font-medium text-muted-foreground">
             Skill Stats
           </h4>
@@ -323,7 +323,7 @@ export const BuildForm: React.FC<BuildFormProps> = ({
           </div>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-2">
           <h4 className="text-sm font-medium text-muted-foreground">
             Positional Stats
           </h4>

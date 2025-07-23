@@ -118,8 +118,8 @@ export const ImportDialog: React.FC<ImportDialogProps> = ({
             Import {importType === "build" ? "Build" : "Enemy"} Data
           </DialogTitle>
           <DialogDescription>
-            Import {importType === "build" ? "character build" : "enemy"} data
-            from pasted text
+            Import {importType === "build" ? "character build" : "enemy"}
+            from questlog.gg build page
           </DialogDescription>
         </DialogHeader>
 
@@ -162,8 +162,8 @@ export const ImportDialog: React.FC<ImportDialogProps> = ({
               className="font-mono text-sm"
             />
             <p className="text-sm text-muted-foreground">
-              Copy and paste the complete stats text from websites like
-              questlog.gg, including weapon damage values
+              Copy and paste the complete stats text from questlog.gg, including
+              weapon damage values
             </p>
           </div>
 
@@ -214,12 +214,21 @@ export const ImportDialog: React.FC<ImportDialogProps> = ({
           <div className="rounded-lg bg-muted p-4 space-y-3">
             <h4 className="text-sm font-medium">How to use:</h4>
             <ol className="text-sm text-muted-foreground space-y-1 list-decimal list-inside">
-              <li>Go to your build page on questlog.gg or any build website</li>
+              <li>
+                Go to your build page on{" "}
+                <a
+                  href="https://questlog.gg/throne-and-liberty/en"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  questlog.gg (English version)
+                </a>
+              </li>
               <li>Select all the text (Ctrl+A / Cmd+A)</li>
               <li>Copy the text (Ctrl+C / Cmd+C)</li>
               <li>
-                Paste it in the text area above and click Import (Ctrl+V /
-                Cmd+V)
+                Paste it in the text area above (Ctrl+V / Cmd+V) and click
+                Import
               </li>
             </ol>
             <p className="text-sm text-muted-foreground">

@@ -3,7 +3,8 @@ import { Build, Enemy } from "../types";
 
 interface AppState {
   builds: Build[];
-  enemy: Enemy;
+  enemy?: Enemy; // Legacy support
+  enemies?: Enemy[];
   xAxisStat: string;
   xAxisRange: { min: number; max: number; step: number };
   yMetric: string;
@@ -16,6 +17,7 @@ interface AppState {
     hitsPerCast: number;
   };
   activeBuildTab: string;
+  activeEnemyTab?: string;
 }
 
 // Remove default values and undefined properties to minimize size
@@ -149,8 +151,12 @@ export function serializeState(state: Partial<AppState>): string {
     minified.b = state.builds.map(minifyBuild);
   }
   
-  // Minify enemy
-  if (state.enemy) {
+  // Minify enemies array
+  if (state.enemies && state.enemies.length > 0) {
+    minified.es = state.enemies.map(minifyEnemy);
+  }
+  // Legacy: support single enemy
+  else if (state.enemy) {
     minified.e = minifyEnemy(state.enemy);
   }
   
@@ -174,6 +180,7 @@ export function serializeState(state: Partial<AppState>): string {
   }
   
   if (state.activeBuildTab && state.activeBuildTab !== "0") minified.t = state.activeBuildTab;
+  if (state.activeEnemyTab && state.activeEnemyTab !== "0") minified.et = state.activeEnemyTab;
   
   // Compress and encode
   const json = JSON.stringify(minified);
@@ -194,8 +201,12 @@ export function deserializeState(hash: string): Partial<AppState> | null {
       state.builds = minified.b.map(expandBuild);
     }
     
-    // Expand enemy
-    if (minified.e) {
+    // Expand enemies
+    if (minified.es && Array.isArray(minified.es)) {
+      state.enemies = minified.es.map(expandEnemy);
+    }
+    // Legacy: support single enemy
+    else if (minified.e) {
       state.enemy = expandEnemy(minified.e);
     }
     
@@ -219,6 +230,7 @@ export function deserializeState(hash: string): Partial<AppState> | null {
     }
     
     if (minified.t) state.activeBuildTab = minified.t;
+    if (minified.et) state.activeEnemyTab = minified.et;
     
     return state;
   } catch (error) {

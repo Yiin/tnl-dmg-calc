@@ -21,6 +21,9 @@ interface DamageChartProps {
   combatType: "melee" | "ranged" | "magic";
   attackDirection: "front" | "side" | "back";
   isPvP?: boolean;
+  skillPotency?: number;
+  skillFlatAdd?: number;
+  hitsPerCast?: number;
   onPointHover?: (breakdown: DamageBreakdown | null, x: number) => void;
 }
 
@@ -42,6 +45,9 @@ export const DamageChart: React.FC<DamageChartProps> = ({
   combatType,
   attackDirection,
   isPvP = true,
+  skillPotency = 1.0,
+  skillFlatAdd = 0,
+  hitsPerCast = 1,
   onPointHover,
 }) => {
   const chartData = useMemo(() => {
@@ -60,7 +66,10 @@ export const DamageChart: React.FC<DamageChartProps> = ({
           modifiedEnemy,
           combatType,
           attackDirection,
-          isPvP
+          isPvP,
+          skillPotency,
+          skillFlatAdd,
+          hitsPerCast
         );
         point[`build${index}`] = breakdown[yMetric];
       });
@@ -69,7 +78,7 @@ export const DamageChart: React.FC<DamageChartProps> = ({
     }
 
     return data;
-  }, [builds, enemy, xAxisStat, xAxisRange, yMetric, combatType, attackDirection, isPvP]);
+  }, [builds, enemy, xAxisStat, xAxisRange, yMetric, combatType, attackDirection, isPvP, skillPotency, skillFlatAdd, hitsPerCast]);
 
   const handleMouseMove = (data: any) => {
     if (
@@ -95,7 +104,10 @@ export const DamageChart: React.FC<DamageChartProps> = ({
         modifiedEnemy,
         combatType,
         attackDirection,
-        isPvP
+        isPvP,
+        skillPotency,
+        skillFlatAdd,
+        hitsPerCast
       );
       onPointHover(breakdown, x);
     }

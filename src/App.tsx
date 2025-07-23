@@ -8,9 +8,16 @@ import { DamageBreakdownTooltip } from "./components/DamageBreakdownTooltip";
 import { ImportDialog } from "./components/ImportDialog";
 import { ConfirmDialog } from "./components/ConfirmDialog";
 import { DamageFormula } from "./components/DamageFormula";
+import { SkillConfigForm } from "./components/SkillConfigForm";
 import { Button } from "./components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs";
 import { Trash2 } from "lucide-react";
+
+interface SkillConfig {
+  skillPotency: number;
+  skillFlatAdd: number;
+  hitsPerCast: number;
+}
 
 const defaultBuild: Build = {
   name: "Build 1",
@@ -26,11 +33,14 @@ const defaultBuild: Build = {
   meleeHit: 2000,
   rangedHit: 2000,
   magicHit: 2000,
-  skillPotency: 3.0,
-  skillFlatAdd: 0,
-  hitsPerCast: 1,
   skillDamageBoost: 0,
   bonusDamage: 0,
+};
+
+const defaultSkillConfig: SkillConfig = {
+  skillPotency: 1.0,
+  skillFlatAdd: 0,
+  hitsPerCast: 1,
 };
 
 const defaultEnemy: Enemy = {
@@ -62,6 +72,7 @@ const STORAGE_KEYS = {
   attackDirection: "tnl-damage-calc-attack-direction",
   activeBuildTab: "tnl-damage-calc-active-build-tab",
   isPvP: "tnl-damage-calc-is-pvp",
+  skillConfig: "tnl-damage-calc-skill-config",
 };
 
 // Load from localStorage with fallback
@@ -96,21 +107,21 @@ function saveToStorage<T>(key: string, value: T): void {
 // Detect dominant combat type based on build stats
 function detectDominantCombatType(build: Build): "melee" | "ranged" | "magic" {
   // Calculate total stats for each combat type
-  const meleeScore = 
-    (build.meleeCritical || 0) + 
-    (build.meleeHit || 0) + 
+  const meleeScore =
+    (build.meleeCritical || 0) +
+    (build.meleeHit || 0) +
     (build.meleeHeavyAttack || 0);
-  
-  const rangedScore = 
-    (build.rangedCritical || 0) + 
-    (build.rangedHit || 0) + 
+
+  const rangedScore =
+    (build.rangedCritical || 0) +
+    (build.rangedHit || 0) +
     (build.rangedHeavyAttack || 0);
-  
-  const magicScore = 
-    (build.magicCritical || 0) + 
-    (build.magicHit || 0) + 
+
+  const magicScore =
+    (build.magicCritical || 0) +
+    (build.magicHit || 0) +
     (build.magicHeavyAttack || 0);
-  
+
   // Return the type with highest score
   if (magicScore >= meleeScore && magicScore >= rangedScore) {
     return "magic";
@@ -122,21 +133,31 @@ function detectDominantCombatType(build: Build): "melee" | "ranged" | "magic" {
 }
 
 // Select smart X-axis stat based on enemy stats and combat type
-function selectSmartXAxisStat(enemy: Enemy, combatType: "melee" | "ranged" | "magic"): StatKey {
+function selectSmartXAxisStat(
+  enemy: Enemy,
+  combatType: "melee" | "ranged" | "magic"
+): StatKey {
   // Get the relevant evasion stat for the combat type
-  const evasionStat = combatType === "melee" ? enemy.meleeEvasion :
-                      combatType === "ranged" ? enemy.rangedEvasion :
-                      enemy.magicEvasion;
-  
+  const evasionStat =
+    combatType === "melee"
+      ? enemy.meleeEvasion
+      : combatType === "ranged"
+      ? enemy.rangedEvasion
+      : enemy.magicEvasion;
+
   // If evasion is greater than 500, select evasion, otherwise endurance
   if ((evasionStat || 0) > 500) {
-    return combatType === "melee" ? "meleeEvasion" :
-           combatType === "ranged" ? "rangedEvasion" :
-           "magicEvasion";
+    return combatType === "melee"
+      ? "meleeEvasion"
+      : combatType === "ranged"
+      ? "rangedEvasion"
+      : "magicEvasion";
   } else {
-    return combatType === "melee" ? "meleeEndurance" :
-           combatType === "ranged" ? "rangedEndurance" :
-           "magicEndurance";
+    return combatType === "melee"
+      ? "meleeEndurance"
+      : combatType === "ranged"
+      ? "rangedEndurance"
+      : "magicEndurance";
   }
 }
 
@@ -168,6 +189,9 @@ function App() {
   >(() => loadFromStorage(STORAGE_KEYS.attackDirection, "front"));
   const [isPvP, setIsPvP] = useState<boolean>(() =>
     loadFromStorage(STORAGE_KEYS.isPvP, true)
+  );
+  const [skillConfig, setSkillConfig] = useState<SkillConfig>(() =>
+    loadFromStorage(STORAGE_KEYS.skillConfig, defaultSkillConfig)
   );
   const [hoveredBreakdown, setHoveredBreakdown] =
     useState<DamageBreakdown | null>(null);
@@ -279,6 +303,10 @@ function App() {
   useEffect(() => {
     saveToStorage(STORAGE_KEYS.isPvP, isPvP);
   }, [isPvP]);
+
+  useEffect(() => {
+    saveToStorage(STORAGE_KEYS.skillConfig, skillConfig);
+  }, [skillConfig]);
 
   // Auto-detect combat type when active build changes
   useEffect(() => {
@@ -394,6 +422,8 @@ function App() {
 
         {/* Main chart area */}
         <div className="lg:col-span-2 space-y-6">
+          <SkillConfigForm config={skillConfig} onChange={setSkillConfig} />
+
           <ChartControls
             xAxisStat={xAxisStat}
             onXAxisChange={setXAxisStat}
@@ -419,6 +449,9 @@ function App() {
               combatType={combatType}
               attackDirection={attackDirection}
               isPvP={isPvP}
+              skillPotency={skillConfig.skillPotency}
+              skillFlatAdd={skillConfig.skillFlatAdd}
+              hitsPerCast={skillConfig.hitsPerCast}
               onPointHover={(breakdown, x) => {
                 setHoveredBreakdown(breakdown);
                 setHoveredX(x);
@@ -433,6 +466,9 @@ function App() {
               combatType={combatType}
               attackDirection={attackDirection}
               isPvP={isPvP}
+              skillPotency={skillConfig.skillPotency}
+              skillFlatAdd={skillConfig.skillFlatAdd}
+              hitsPerCast={skillConfig.hitsPerCast}
             />
           )}
         </div>
@@ -461,8 +497,8 @@ function App() {
               className="text-primary hover:underline"
             >
               u/Rabubu29
-            </a>
-            {" "}•{" "}
+            </a>{" "}
+            •{" "}
             <a
               href="https://github.com/yiin/tnl-dmg-calc"
               target="_blank"

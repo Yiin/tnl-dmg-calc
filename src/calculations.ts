@@ -119,17 +119,20 @@ export function expectedBaseDamage(
   crit: number,
   endurance: number,
   minDMG: number,
-  maxDMG: number
+  maxDMG: number,
+  critDamageBonus: number = 0
 ): number {
   const { critChance, glanceChance } = critGlanceChances(crit, endurance);
   const normalChance = 1 - critChance - glanceChance;
 
   // According to the formula table:
   // Crit ⇒ maxDMG; Glance ⇒ minDMG; Normal ⇒ U[min,max] uniform roll (average)
-  // Critical damage bonus is applied separately in the final calculation
   const avgDamage = (minDMG + maxDMG) / 2;
+  
+  // Apply critical damage bonus only to critical hits
+  const critMultiplier = 1 + critDamageBonus;
 
-  return critChance * maxDMG + glanceChance * minDMG + normalChance * avgDamage;
+  return critChance * maxDMG * critMultiplier + glanceChance * minDMG + normalChance * avgDamage;
 }
 
 export function expectedOffhandDamage(
@@ -137,16 +140,20 @@ export function expectedOffhandDamage(
   endurance: number,
   offhandMinDMG: number,
   offhandMaxDMG: number,
-  offhandChance: number
+  offhandChance: number,
+  critDamageBonus: number = 0
 ): number {
   const { critChance, glanceChance } = critGlanceChances(crit, endurance);
   const normalChance = 1 - critChance - glanceChance;
 
-  // Same base damage logic as main hand - crit bonus applied in final calculation
+  // Same base damage logic as main hand
   const avgDamage = (offhandMinDMG + offhandMaxDMG) / 2;
+  
+  // Apply critical damage bonus only to critical hits
+  const critMultiplier = 1 + critDamageBonus;
 
   const offhandBaseDamage =
-    critChance * offhandMaxDMG +
+    critChance * offhandMaxDMG * critMultiplier +
     glanceChance * offhandMinDMG +
     normalChance * avgDamage;
 
@@ -212,7 +219,10 @@ export function calculateDamage(
   enemy: Enemy,
   combatType: "melee" | "ranged" | "magic" = "melee",
   attackDirection: "front" | "side" | "back" = "front",
-  isPVP: boolean = true
+  isPVP: boolean = true,
+  skillPotency: number = 1.0,
+  skillFlatAdd: number = 0,
+  hitsPerCast: number = 1
 ): DamageBreakdown {
   const { buildStats, enemyStats } = getCombatTypeStats(
     build,
@@ -221,12 +231,19 @@ export function calculateDamage(
     attackDirection
   );
 
-  // Step 1: Calculate base damage (crit/glance/normal expected value)
+  // Calculate critical damage bonus
+  const critDamageBonus = criticalDamageMultiplier(
+    build.criticalDamage || 0,
+    enemy.criticalDamageResistance || 0
+  );
+
+  // Step 1: Calculate base damage (crit/glance/normal expected value with crit damage)
   const mainHandBaseDamage = expectedBaseDamage(
     buildStats.critical,
     enemyStats.endurance,
     build.minDMG,
-    build.maxDMG
+    build.maxDMG,
+    critDamageBonus
   );
 
   // Off-hand damage (if dual-wielding) - calculated separately and multiplied by proc chance
@@ -237,7 +254,8 @@ export function calculateDamage(
           enemyStats.endurance,
           build.offhandMinDMG,
           build.offhandMaxDMG,
-          build.offhandChance
+          build.offhandChance,
+          critDamageBonus
         )
       : 0;
 
@@ -248,9 +266,7 @@ export function calculateDamage(
   // ((((Skill Potency * Base Damage) + Skill Damage) * [Multipliers]) * Heavy Attack) + Bonus Damage - Damage Reduction
 
   // 2a: (Skill Potency * Base Damage) + Skill Damage
-  const skillPotencyMult = build.skillPotency || 1.0;
-  const coreSkillDamage =
-    skillPotencyMult * baseDamageRaw + (build.skillFlatAdd || 0);
+  const coreSkillDamage = skillPotency * baseDamageRaw + skillFlatAdd;
 
   // 2b: Calculate all multipliers according to Reddit post
   const defReduction = defenseReduction(enemyStats.defense);
@@ -264,16 +280,11 @@ export function calculateDamage(
       build.shieldBlockPenetrationChance || 0
     );
 
-  // Critical Damage multiplier (expected value)
+  // Get crit/glance chances for display purposes
   const { critChance, glanceChance } = critGlanceChances(
     buildStats.critical,
     enemyStats.endurance
   );
-  const critDamageMult = criticalDamageMultiplier(
-    build.criticalDamage || 0,
-    enemy.criticalDamageResistance || 0
-  );
-  const expectedCritMultiplier = 1 + critChance * critDamageMult;
 
   // Skill Damage Boost multiplier
   const skillBoostMult = skillMultiplier(
@@ -291,11 +302,11 @@ export function calculateDamage(
     ? 1 + pvpDamageMultiplier()
     : 1 + pveDamageMultiplier(build.pveDamageMultiplier || 0);
 
-  // 2c: Apply all multipliers: Defense% * Block% * Critical Damage% * Skill Damage Boost% * Species Damage Boost% * PVE% (or PVP%)
+  // 2c: Apply all multipliers: Defense% * Block% * Skill Damage Boost% * Species Damage Boost% * PVE% (or PVP%)
+  // Note: Critical damage is already included in base damage calculation
   const allMultipliers =
     defenseMultiplier *
     blockMult *
-    expectedCritMultiplier *
     skillBoostMult *
     speciesBoostMult *
     pvpPveMultiplier;
@@ -320,7 +331,7 @@ export function calculateDamage(
   const hitProb = hitChance(buildStats.hit, enemyStats.evasion);
 
   // Step 4: Multiply by hits per cast
-  const expectedDamage = hitProb * (build.hitsPerCast || 1) * finalDamage;
+  const expectedDamage = hitProb * hitsPerCast * finalDamage;
 
   const normalChance = 1 - critChance - glanceChance;
 
@@ -345,14 +356,20 @@ export function calculateDPS(
   attackDirection: "front" | "side" | "back" = "front",
   cooldownTime: number = 1,
   castTime: number = 1,
-  isPVP: boolean = true
+  isPVP: boolean = true,
+  skillPotency: number = 1.0,
+  skillFlatAdd: number = 0,
+  hitsPerCast: number = 1
 ): number {
   const damage = calculateDamage(
     build,
     enemy,
     combatType,
     attackDirection,
-    isPVP
+    isPVP,
+    skillPotency,
+    skillFlatAdd,
+    hitsPerCast
   );
   const effectiveCooldown = Math.max(cooldownTime, castTime);
   return damage.expectedDamage / effectiveCooldown;

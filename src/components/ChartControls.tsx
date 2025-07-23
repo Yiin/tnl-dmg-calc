@@ -60,7 +60,6 @@ const ATTACKER_STATS: { value: StatKey; label: string }[] = [
 
   // Skill Stats
   { value: "skillDamageBoost", label: "Skill Damage Boost" },
-  { value: "skillPotency", label: "Skill Potency" },
 ];
 
 const ENEMY_STATS: { value: StatKey; label: string }[] = [

@@ -307,36 +307,6 @@ export const BuildForm: React.FC<BuildFormProps> = ({
           </h4>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
-              <Label htmlFor="skillPotency" className="text-xs">
-                Skill Potency
-              </Label>
-              <Input
-                id="skillPotency"
-                type="number"
-                step="0.1"
-                value={build.skillPotency || 0}
-                onChange={(e) =>
-                  handleInputChange("skillPotency", e.target.value)
-                }
-                className="h-8 text-xs"
-                placeholder="3.0"
-              />
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="skillFlatAdd" className="text-xs">
-                Skill Flat Add
-              </Label>
-              <Input
-                id="skillFlatAdd"
-                type="number"
-                value={build.skillFlatAdd || 0}
-                onChange={(e) =>
-                  handleInputChange("skillFlatAdd", e.target.value)
-                }
-                className="h-8 text-xs"
-              />
-            </div>
-            <div className="space-y-1">
               <Label htmlFor="skillDamageBoost" className="text-xs">
                 Skill Damage Boost
               </Label>
@@ -346,21 +316,6 @@ export const BuildForm: React.FC<BuildFormProps> = ({
                 value={build.skillDamageBoost || 0}
                 onChange={(e) =>
                   handleInputChange("skillDamageBoost", e.target.value)
-                }
-                className="h-8 text-xs"
-              />
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="hitsPerCast" className="text-xs">
-                Hits Per Cast
-              </Label>
-              <Input
-                id="hitsPerCast"
-                type="number"
-                min="1"
-                value={build.hitsPerCast || 1}
-                onChange={(e) =>
-                  handleInputChange("hitsPerCast", e.target.value)
                 }
                 className="h-8 text-xs"
               />

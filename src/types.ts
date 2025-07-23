@@ -34,9 +34,6 @@ export interface Build {
   magicHit?: number;
 
   // Skill stats
-  skillPotency?: number; // percentage as decimal (3.0 = 300%)
-  skillFlatAdd?: number;
-  hitsPerCast?: number;
   skillDamageBoost?: number;
 
   // PvE

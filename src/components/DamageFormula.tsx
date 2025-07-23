@@ -54,8 +54,18 @@ export const DamageFormula: React.FC<DamageFormulaProps> = ({
 
   // Calculate key values
   const avgWeaponDmg = ((build.minDMG + build.maxDMG) / 2).toFixed(1);
-  const critChance = (totalCrit / (totalCrit + stats.endurance + 1000)).toFixed(3);
-  const glanceChance = (stats.endurance / (totalCrit + stats.endurance + 1000)).toFixed(3);
+  
+  // Correctly calculate crit/glance based on conditional formula
+  let critChance = "0.000";
+  let glanceChance = "0.000";
+  
+  if (totalCrit > stats.endurance) {
+    const diff = totalCrit - stats.endurance;
+    critChance = (diff / (diff + 1000)).toFixed(3);
+  } else {
+    const diff = stats.endurance - totalCrit;
+    glanceChance = (diff / (diff + 1000)).toFixed(3);
+  }
   const hitChance = (totalHit / (totalHit + stats.evasion + 1000)).toFixed(3);
   const heavyChance = (totalHeavy / (totalHeavy + stats.heavyEvasion + 1000)).toFixed(3);
   const defenseReduction = (1 - stats.defense / (stats.defense + 2500)).toFixed(3);
@@ -70,17 +80,31 @@ export const DamageFormula: React.FC<DamageFormulaProps> = ({
       <CardContent className="space-y-4">
         <div className="text-xs font-mono space-y-2 overflow-x-auto">
           <div className="whitespace-pre">
-            <span className="text-muted-foreground">// Base Damage</span>
+            <span className="text-muted-foreground">// Base Damage Calculation</span>
             <br />
-            BaseDamage = ({build.minDMG} + {build.maxDMG}) / 2 = <span className="text-primary">{avgWeaponDmg}</span>
+            AvgWeaponDamage = ({build.minDMG} + {build.maxDMG}) / 2 = <span className="text-primary">{avgWeaponDmg}</span>
+            <br />
+            <span className="text-muted-foreground">// Expected Base Damage = (CritChance × MaxDMG) + (GlanceChance × MinDMG) + (NormalChance × AvgDMG)</span>
+            <br />
+            ExpectedBaseDamage = ({critChance} × {build.maxDMG}) + ({glanceChance} × {build.minDMG}) + ({(1 - parseFloat(critChance) - parseFloat(glanceChance)).toFixed(3)} × {avgWeaponDmg})
           </div>
 
           <div className="whitespace-pre">
             <span className="text-muted-foreground">// Combat Chances ({combatType}, {attackDirection} attack)</span>
             <br />
-            CritChance = ({totalCrit}{criticalMod > 0 ? ` [${stats.critical}+${criticalMod}]` : ''}) / ({totalCrit} + {stats.endurance} + 1000) = <span className="text-green-500">{critChance}</span>
-            <br />
-            GlanceChance = {stats.endurance} / ({totalCrit} + {stats.endurance} + 1000) = <span className="text-orange-500">{glanceChance}</span>
+            {totalCrit > stats.endurance ? (
+              <>
+                CritChance = ({totalCrit - stats.endurance}) / ({totalCrit - stats.endurance} + 1000) = <span className="text-green-500">{critChance}</span>
+                <br />
+                GlanceChance = <span className="text-orange-500">0.000</span> <span className="text-muted-foreground">(crit &gt; endurance)</span>
+              </>
+            ) : (
+              <>
+                CritChance = <span className="text-green-500">0.000</span> <span className="text-muted-foreground">(crit ≤ endurance)</span>
+                <br />
+                GlanceChance = ({stats.endurance - totalCrit}) / ({stats.endurance - totalCrit} + 1000) = <span className="text-orange-500">{glanceChance}</span>
+              </>
+            )}
             <br />
             HitChance = ({totalHit}{hitMod > 0 ? ` [${stats.hit}+${hitMod}]` : ''}) / ({totalHit} + {stats.evasion} + 1000) = <span className="text-blue-500">{hitChance}</span>
             <br />
@@ -92,13 +116,13 @@ export const DamageFormula: React.FC<DamageFormulaProps> = ({
           <div className="whitespace-pre">
             <span className="text-muted-foreground">// Damage Multipliers</span>
             <br />
-            CritMultiplier = 1 + {build.criticalDamage}/100 = <span className="text-primary">{(1 + build.criticalDamage / 100).toFixed(2)}</span>
+            CritMultiplier = 1 + {build.criticalDamage || 0}/100 = <span className="text-primary">{(1 + (build.criticalDamage || 0) / 100).toFixed(2)}</span>
             <br />
             GlanceMultiplier = 0.7
             <br />
             HeavyMultiplier = 2.0 <span className="text-muted-foreground">(if heavy attack lands)</span>
             <br />
-            SkillMultiplier = {build.skillPotency} + {build.skillFlatAdd} = <span className="text-primary">{(build.skillPotency + build.skillFlatAdd).toFixed(2)}</span>
+            SkillMultiplier = {build.skillPotency || 0} + {build.skillFlatAdd || 0} = <span className="text-primary">{((build.skillPotency || 0) + (build.skillFlatAdd || 0)).toFixed(2)}</span>
           </div>
 
           <div className="whitespace-pre">

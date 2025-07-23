@@ -19,15 +19,15 @@ An interactive damage calculator for Throne & Liberty that allows players to:
 
 ## Live Demo
 
-Visit the calculator at: https://[your-github-username].github.io/tnl/
+Visit the calculator at: https://yiin.github.io/tnl-dmg-calc/
 
 ## Local Development
 
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/[your-github-username]/tnl.git
-cd tnl
+git clone https://github.com/yiin/tnl-dmg-calc.git
+cd tnl-dmg-calc
 ```
 
 2. Install dependencies:
@@ -77,6 +77,6 @@ This project is open source. Feel free to use and modify as needed.
 
 ## Acknowledgments
 
-- Damage formulas based on community research from the T&L Reddit community
+- Damage formulas based on comprehensive research by [u/Rabubu29](https://www.reddit.com/r/throneandliberty/comments/1k2cgcp/how_does_our_stats_impact_our_skills_a_very_long/)
 - UI components from shadcn/ui
 - Build data structure inspired by questlog.gg

@@ -7,6 +7,7 @@ import { ChartControls } from "./components/ChartControls";
 import { DamageBreakdownTooltip } from "./components/DamageBreakdownTooltip";
 import { ImportDialog } from "./components/ImportDialog";
 import { ConfirmDialog } from "./components/ConfirmDialog";
+import { DamageFormula } from "./components/DamageFormula";
 import { Button } from "./components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs";
 import { Trash2 } from "lucide-react";
@@ -60,6 +61,7 @@ const STORAGE_KEYS = {
   combatType: "tnl-damage-calc-combat-type",
   attackDirection: "tnl-damage-calc-attack-direction",
   activeBuildTab: "tnl-damage-calc-active-build-tab",
+  isPvP: "tnl-damage-calc-is-pvp",
 };
 
 // Load from localStorage with fallback
@@ -164,6 +166,9 @@ function App() {
   const [attackDirection, setAttackDirection] = useState<
     "front" | "side" | "back"
   >(() => loadFromStorage(STORAGE_KEYS.attackDirection, "front"));
+  const [isPvP, setIsPvP] = useState<boolean>(() =>
+    loadFromStorage(STORAGE_KEYS.isPvP, true)
+  );
   const [hoveredBreakdown, setHoveredBreakdown] =
     useState<DamageBreakdown | null>(null);
   const [hoveredX, setHoveredX] = useState<number>(0);
@@ -270,6 +275,10 @@ function App() {
   useEffect(() => {
     saveToStorage(STORAGE_KEYS.activeBuildTab, activeBuildTab);
   }, [activeBuildTab]);
+
+  useEffect(() => {
+    saveToStorage(STORAGE_KEYS.isPvP, isPvP);
+  }, [isPvP]);
 
   // Auto-detect combat type when active build changes
   useEffect(() => {
@@ -396,6 +405,8 @@ function App() {
             onCombatTypeChange={setCombatType}
             attackDirection={attackDirection}
             onAttackDirectionChange={setAttackDirection}
+            isPvP={isPvP}
+            onIsPvPChange={setIsPvP}
           />
 
           <div className="min-h-[500px]">
@@ -407,12 +418,23 @@ function App() {
               yMetric={yMetric}
               combatType={combatType}
               attackDirection={attackDirection}
+              isPvP={isPvP}
               onPointHover={(breakdown, x) => {
                 setHoveredBreakdown(breakdown);
                 setHoveredX(x);
               }}
             />
           </div>
+
+          {builds.length > 0 && builds[parseInt(activeBuildTab)] && (
+            <DamageFormula
+              build={builds[parseInt(activeBuildTab)]}
+              enemy={enemy}
+              combatType={combatType}
+              attackDirection={attackDirection}
+              isPvP={isPvP}
+            />
+          )}
         </div>
 
         {/* Right sidebar with enemy configuration */}
@@ -427,6 +449,31 @@ function App() {
           </div>
         </div>
       </div>
+
+      <footer className="border-t border-border bg-card/50 backdrop-blur supports-[backdrop-filter]:bg-card/20 p-4 mt-8">
+        <div className="container mx-auto text-center text-sm text-muted-foreground">
+          <p>
+            Damage formulas based on research by{" "}
+            <a
+              href="https://www.reddit.com/r/throneandliberty/comments/1k2cgcp/how_does_our_stats_impact_our_skills_a_very_long/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary hover:underline"
+            >
+              u/Rabubu29
+            </a>
+            {" "}•{" "}
+            <a
+              href="https://github.com/yiin/tnl-dmg-calc"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary hover:underline"
+            >
+              View on GitHub
+            </a>
+          </p>
+        </div>
+      </footer>
 
       <ImportDialog
         isOpen={showImportDialog}

@@ -20,6 +20,7 @@ interface DamageChartProps {
   yMetric: "expectedDamage" | "finalDamage" | "critChance" | "hitChance";
   combatType: "melee" | "ranged" | "magic";
   attackDirection: "front" | "side" | "back";
+  isPvP?: boolean;
   onPointHover?: (breakdown: DamageBreakdown | null, x: number) => void;
 }
 
@@ -40,6 +41,7 @@ export const DamageChart: React.FC<DamageChartProps> = ({
   yMetric,
   combatType,
   attackDirection,
+  isPvP = true,
   onPointHover,
 }) => {
   const chartData = useMemo(() => {
@@ -57,7 +59,8 @@ export const DamageChart: React.FC<DamageChartProps> = ({
           modifiedBuild,
           modifiedEnemy,
           combatType,
-          attackDirection
+          attackDirection,
+          isPvP
         );
         point[`build${index}`] = breakdown[yMetric];
       });
@@ -66,7 +69,7 @@ export const DamageChart: React.FC<DamageChartProps> = ({
     }
 
     return data;
-  }, [builds, enemy, xAxisStat, xAxisRange, yMetric, combatType, attackDirection]);
+  }, [builds, enemy, xAxisStat, xAxisRange, yMetric, combatType, attackDirection, isPvP]);
 
   const handleMouseMove = (data: any) => {
     if (
@@ -91,7 +94,8 @@ export const DamageChart: React.FC<DamageChartProps> = ({
         modifiedBuild,
         modifiedEnemy,
         combatType,
-        attackDirection
+        attackDirection,
+        isPvP
       );
       onPointHover(breakdown, x);
     }

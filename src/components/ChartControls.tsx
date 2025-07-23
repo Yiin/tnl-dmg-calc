@@ -32,6 +32,8 @@ interface ChartControlsProps {
   onCombatTypeChange: (type: "melee" | "ranged" | "magic") => void;
   attackDirection: "front" | "side" | "back";
   onAttackDirectionChange: (direction: "front" | "side" | "back") => void;
+  isPvP: boolean;
+  onIsPvPChange: (isPvP: boolean) => void;
 }
 
 const ATTACKER_STATS: { value: StatKey; label: string }[] = [
@@ -105,6 +107,8 @@ export const ChartControls: React.FC<ChartControlsProps> = ({
   onCombatTypeChange,
   attackDirection,
   onAttackDirectionChange,
+  isPvP,
+  onIsPvPChange,
 }) => {
   return (
     <Card>
@@ -193,6 +197,36 @@ export const ChartControls: React.FC<ChartControlsProps> = ({
                 )}
               >
                 Back
+              </Button>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Combat Mode</Label>
+            <div className="flex gap-2">
+              <Button
+                variant={isPvP ? "default" : "outline"}
+                size="sm"
+                onClick={() => onIsPvPChange(true)}
+                className={cn(
+                  "flex-1 py-6",
+                  isPvP &&
+                    "bg-red-600 hover:bg-red-700 text-white"
+                )}
+              >
+                PvP
+              </Button>
+              <Button
+                variant={!isPvP ? "default" : "outline"}
+                size="sm"
+                onClick={() => onIsPvPChange(false)}
+                className={cn(
+                  "flex-1 py-6",
+                  !isPvP &&
+                    "bg-green-600 hover:bg-green-700 text-white"
+                )}
+              >
+                PvE
               </Button>
             </div>
           </div>

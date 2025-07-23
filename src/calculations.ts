@@ -3,17 +3,19 @@ import { Build, Enemy, DamageBreakdown } from "./types";
 /**
  * Throne & Liberty Damage Calculation Implementation
  *
- * Based on the comprehensive formula guide from Reddit:
+ * Based on the comprehensive research and formula guide by u/Rabubu29 on Reddit:
  * https://www.reddit.com/r/throneandliberty/comments/1k2cgcp/how_does_our_stats_impact_our_skills_a_very_long/
  *
- * Key Formulas:
+ * This implementation uses the exact formulas documented in that post, including:
  * - Hit vs Evasion: Hit% = 1 – (max(0, EVA–HIT) / (max(0,EVA–HIT)+1000))
  * - Crit vs Endurance: if crit > end: pCrit = Δ/(Δ+1000) else pGlance = Δ/(Δ+1000)
  * - Base-DMG: Crit ⇒ maxDMG; Glance ⇒ minDMG; Normal ⇒ U[min,max] uniform roll
  * - Heavy vs Heavy Evade: pHeavy = max(0,heavy – hevade) / (max(0,heavy – hevade)+1000)
  * - Skill Boost vs Resist: if boost > resist: 1 + Δ/(Δ+1000) ; else 1 – Δ/(Δ+1000)
  * - Defense: reduct = DEF/(DEF+2500)
- * - Final hit: (((skillPotency × BaseDMG) + skillFlatAdd) × multipliers × heavyFlag) + bonusDMG – dmgReduction
+ * - Final formula: (((skillPotency × BaseDMG) + skillFlatAdd) × multipliers × heavyFlag) + bonusDMG – dmgReduction
+ *
+ * All credit for the formula research goes to u/Rabubu29
  */
 
 export function ratingToPercent(rating: number): number {
@@ -307,13 +309,11 @@ export function calculateDamage(
   const expectedHeavyMultiplier = heavyProb * 2 + (1 - heavyProb) * 1;
   const afterHeavyMult = afterMultipliers * expectedHeavyMultiplier;
 
-  // 2e: Add Bonus Damage
-  const afterBonusDamage = afterHeavyMult + (build.bonusDamage || 0);
-
+  // 2e: Add Bonus Damage - AFTER heavy attack multiplier per source
   // 2f: Subtract Damage Reduction
   const finalDamage = Math.max(
     0,
-    afterBonusDamage - (enemy.damageReduction || 0)
+    afterHeavyMult + (build.bonusDamage || 0) - (enemy.damageReduction || 0)
   );
 
   // Step 3: Apply hit chance to get expected damage

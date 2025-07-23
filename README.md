@@ -1,46 +1,82 @@
-# Getting Started with Create React App
+# Throne & Liberty Damage Calculator
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+An interactive damage calculator for Throne & Liberty that allows players to:
 
-## Available Scripts
+- Simulate damage calculations with accurate game mechanics
+- Compare multiple builds side-by-side
+- Import builds from questlog.gg via text parsing
+- Visualize damage output across different stat ranges
+- Account for positional combat (front/side/back attacks)
 
-In the project directory, you can run:
+## Features
 
-### `npm start`
+- **Accurate Damage Calculations**: Implements T&L's complex damage formulas including crit/glance chances, heavy attacks, skill multipliers, and defensive calculations
+- **Build Management**: Create and manage multiple builds with tabbed interface
+- **Visual Comparison**: Interactive charts showing damage output across stat ranges
+- **Import Functionality**: Import builds by copying stats text from questlog.gg
+- **Positional Combat**: Calculate damage based on attack direction (front, side, back)
+- **Persistent Storage**: All builds and settings are saved locally
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+## Live Demo
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+Visit the calculator at: https://[your-github-username].github.io/tnl/
 
-### `npm test`
+## Local Development
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+1. Clone the repository:
 
-### `npm run build`
+```bash
+git clone https://github.com/[your-github-username]/tnl.git
+cd tnl
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+2. Install dependencies:
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+```bash
+npm install
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+3. Start the development server:
 
-### `npm run eject`
+```bash
+npm run dev
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+The app will open at http://localhost:3000
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## Build Configuration
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+The project uses Vite for building. Key configurations:
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+- **Base Path**: Automatically set for GitHub Pages deployment
+- **Output Directory**: `dist/`
+- **TypeScript**: Strict mode enabled
+- **React**: v19 with modern features
 
-## Learn More
+## Technologies Used
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+- React 19
+- TypeScript
+- Vite
+- Tailwind CSS
+- Recharts (for data visualization)
+- Radix UI (for accessible components)
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## Contributing
+
+Feel free to submit issues and pull requests. When contributing:
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Submit a pull request
+
+## License
+
+This project is open source. Feel free to use and modify as needed.
+
+## Acknowledgments
+
+- Damage formulas based on community research from the T&L Reddit community
+- UI components from shadcn/ui
+- Build data structure inspired by questlog.gg

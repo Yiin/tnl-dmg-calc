@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import { useMemo, useCallback, useRef } from "react";
 import {
   LineChart,
   Line,
@@ -8,8 +8,9 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
+  ReferenceLine,
 } from "recharts";
-import { Build, Enemy, StatKey, ChartPoint, DamageBreakdown } from "../types";
+import { Build, Enemy, StatKey, ChartPoint } from "../types";
 import { calculateDamage } from "../calculations";
 
 interface DamageChartProps {
@@ -24,7 +25,6 @@ interface DamageChartProps {
   skillPotency?: number;
   skillFlatAdd?: number;
   hitsPerCast?: number;
-  onPointHover?: (breakdown: DamageBreakdown | null, x: number) => void;
 }
 
 const COLORS = [
@@ -36,7 +36,7 @@ const COLORS = [
   "#d084d0",
 ];
 
-export const DamageChart: React.FC<DamageChartProps> = ({
+export function DamageChart({
   builds,
   enemy,
   xAxisStat,
@@ -48,8 +48,45 @@ export const DamageChart: React.FC<DamageChartProps> = ({
   skillPotency = 1.0,
   skillFlatAdd = 0,
   hitsPerCast = 1,
-  onPointHover,
-}) => {
+}: DamageChartProps) {
+  console.log("Render DamageChart");
+  // Determine if the stat belongs to build or enemy based on the stat name
+  const statBelongsToBuild = useMemo(() => {
+    const buildStats = [
+      "minDMG",
+      "maxDMG",
+      "meleeCritical",
+      "rangedCritical",
+      "magicCritical",
+      "criticalDamage",
+      "meleeHeavyAttack",
+      "rangedHeavyAttack",
+      "magicHeavyAttack",
+      "meleeHit",
+      "rangedHit",
+      "magicHit",
+      "skillDamageBoost",
+      "bonusDamage",
+    ];
+    return buildStats.includes(xAxisStat);
+  }, [xAxisStat]);
+
+  // Get the current value of the x-axis stat from build or enemy
+  const currentStatValue = useMemo(() => {
+    if (statBelongsToBuild && builds.length > 0) {
+      return (builds[0][xAxisStat as keyof Build] as number) || 0;
+    } else if (!statBelongsToBuild) {
+      return (enemy[xAxisStat as keyof Enemy] as number) || 0;
+    }
+    return 0;
+  }, [builds, enemy, xAxisStat, statBelongsToBuild]);
+
+  // Snap the current value to the nearest step on the grid
+  const snappedCurrentValue = useMemo(() => {
+    const { min, step } = xAxisRange;
+    return Math.round((currentStatValue - min) / step) * step + min;
+  }, [currentStatValue, xAxisRange]);
+
   const chartData = useMemo(() => {
     const data: ChartPoint[] = [];
     const { min, max, step } = xAxisRange;
@@ -58,8 +95,15 @@ export const DamageChart: React.FC<DamageChartProps> = ({
       const point: ChartPoint = { x };
 
       builds.forEach((build, index) => {
-        let modifiedBuild = { ...build, [xAxisStat]: x };
-        let modifiedEnemy = { ...enemy, [xAxisStat]: x };
+        let modifiedBuild = { ...build };
+        let modifiedEnemy = { ...enemy };
+
+        // Only modify the entity that actually has the xAxisStat
+        if (statBelongsToBuild) {
+          modifiedBuild = { ...modifiedBuild, [xAxisStat]: x };
+        } else {
+          modifiedEnemy = { ...modifiedEnemy, [xAxisStat]: x };
+        }
 
         const breakdown = calculateDamage(
           modifiedBuild,
@@ -78,82 +122,122 @@ export const DamageChart: React.FC<DamageChartProps> = ({
     }
 
     return data;
-  }, [builds, enemy, xAxisStat, xAxisRange, yMetric, combatType, attackDirection, isPvP, skillPotency, skillFlatAdd, hitsPerCast]);
+  }, [
+    builds,
+    enemy,
+    xAxisStat,
+    xAxisRange,
+    yMetric,
+    combatType,
+    attackDirection,
+    isPvP,
+    skillPotency,
+    skillFlatAdd,
+    hitsPerCast,
+    statBelongsToBuild,
+  ]);
 
-  const handleMouseMove = (data: any) => {
-    if (
-      data &&
-      data.activePayload &&
-      data.activePayload.length > 0 &&
-      onPointHover
-    ) {
-      const x = data.activePayload[0].payload.x;
+  const formatYAxis = useCallback(
+    (value: number) => {
+      if (yMetric.includes("Chance")) {
+        return `${(value * 100).toFixed(1)}%`;
+      }
+      return value.toFixed(0);
+    },
+    [yMetric]
+  );
 
-      // Calculate breakdown for the first build at this x value
-      let modifiedBuild = { ...builds[0] };
-      let modifiedEnemy = { ...enemy };
+  // Cache for tooltip formatting
+  const tooltipCacheRef = useRef<Map<string, [string, string]>>(new Map());
 
-      if (xAxisStat in builds[0]) {
-        modifiedBuild = { ...modifiedBuild, [xAxisStat]: x };
-      } else if (xAxisStat in enemy) {
-        modifiedEnemy = { ...modifiedEnemy, [xAxisStat]: x };
+  // Clear cache when builds or yMetric change
+  useMemo(() => {
+    tooltipCacheRef.current.clear();
+  }, [builds, yMetric]);
+
+  const formatTooltip = useCallback(
+    (value: number, name: string, item: any) => {
+      // Create a cache key from the inputs
+      const cacheKey = `${value}-${name}-${item?.dataKey}`;
+
+      // Check if we have a cached result
+      const cached = tooltipCacheRef.current.get(cacheKey);
+      if (cached) {
+        console.log("Using cached tooltip", Date.now());
+        return cached;
       }
 
-      const breakdown = calculateDamage(
-        modifiedBuild,
-        modifiedEnemy,
-        combatType,
-        attackDirection,
-        isPvP,
-        skillPotency,
-        skillFlatAdd,
-        hitsPerCast
+      console.log("Computing new tooltip", Date.now());
+
+      // The name parameter is the display name from the Line component
+      // We need to find which build this corresponds to
+      const buildIndex = builds.findIndex(
+        (build) => (build.name || `Build ${builds.indexOf(build) + 1}`) === name
       );
-      onPointHover(breakdown, x);
-    }
-  };
 
-  const handleMouseLeave = () => {
-    if (onPointHover) {
-      onPointHover(null, 0);
-    }
-  };
+      let result: [string, string];
 
-  const formatYAxis = (value: number) => {
-    if (yMetric.includes("Chance")) {
-      return `${(value * 100).toFixed(1)}%`;
-    }
-    return value.toFixed(0);
-  };
-
-  const formatTooltip = (
-    value: number,
-    name: string,
-    item: any
-  ) => {
-    // The name parameter is the display name from the Line component
-    // We need to find which build this corresponds to
-    const buildIndex = builds.findIndex(build => (build.name || `Build ${builds.indexOf(build) + 1}`) === name);
-    
-    if (buildIndex === -1) {
-      // Fallback: try to extract from dataKey if name doesn't match
-      const dataKey = item?.dataKey;
-      if (dataKey && dataKey.startsWith('build')) {
-        const index = parseInt(dataKey.replace('build', ''));
-        const buildName = builds[index]?.name || `Build ${index + 1}`;
-        if (yMetric.includes("Chance")) {
-          return [`${(value * 100).toFixed(1)}%`, buildName];
+      if (buildIndex === -1) {
+        // Fallback: try to extract from dataKey if name doesn't match
+        const dataKey = item?.dataKey;
+        if (dataKey && dataKey.startsWith("build")) {
+          const index = parseInt(dataKey.replace("build", ""));
+          const buildName = builds[index]?.name || `Build ${index + 1}`;
+          if (yMetric.includes("Chance")) {
+            result = [`${(value * 100).toFixed(1)}%`, buildName];
+          } else {
+            result = [value.toFixed(0), buildName];
+          }
+        } else {
+          result = [value.toString(), name];
         }
-        return [value.toFixed(0), buildName];
+      } else {
+        const buildName = builds[buildIndex]?.name || `Build ${buildIndex + 1}`;
+        if (yMetric.includes("Chance")) {
+          result = [`${(value * 100).toFixed(1)}%`, buildName];
+        } else {
+          result = [value.toFixed(0), buildName];
+        }
       }
-    }
 
-    const buildName = builds[buildIndex]?.name || `Build ${buildIndex + 1}`;
-    if (yMetric.includes("Chance")) {
-      return [`${(value * 100).toFixed(1)}%`, buildName];
-    }
-    return [value.toFixed(0), buildName];
-  };
+      // Cache the result
+      tooltipCacheRef.current.set(cacheKey, result);
+
+      // Keep cache size reasonable (LRU-like behavior)
+      if (tooltipCacheRef.current.size > 100) {
+        const firstKey = tooltipCacheRef.current.keys().next().value;
+        tooltipCacheRef.current.delete(firstKey!);
+      }
+
+      return result;
+    },
+    [builds, yMetric]
+  );
+
+  const tooltipContentStyle = useMemo(
+    () => ({
+      backgroundColor: "#1a1a1a",
+      border: "1px solid #333",
+      borderRadius: "6px",
+      color: "#f0f0f0",
+    }),
+    []
+  );
+
+  const tooltipLabelStyle = useMemo(
+    () => ({
+      color: "#999",
+      marginBottom: "4px",
+    }),
+    []
+  );
+
+  const tooltipItemStyle = useMemo(
+    () => ({
+      color: "#f0f0f0",
+    }),
+    []
+  );
 
   return (
     <div className="damage-chart">
@@ -161,8 +245,8 @@ export const DamageChart: React.FC<DamageChartProps> = ({
         <LineChart
           data={chartData}
           margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-          onMouseMove={handleMouseMove}
-          onMouseLeave={handleMouseLeave}
+          throttleDelay={100}
+          syncMethod={"index"}
         >
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis
@@ -175,9 +259,15 @@ export const DamageChart: React.FC<DamageChartProps> = ({
           />
           <Tooltip
             formatter={formatTooltip}
-            labelFormatter={(value) => `${xAxisStat}: ${value}`}
+            labelFormatter={useCallback(
+              (value: any) => `${xAxisStat}: ${value}`,
+              [xAxisStat]
+            )}
+            contentStyle={tooltipContentStyle}
+            labelStyle={tooltipLabelStyle}
+            itemStyle={tooltipItemStyle}
           />
-          <Legend />
+          <Legend align="right" />
 
           {builds.map((build, index) => (
             <Line
@@ -190,8 +280,25 @@ export const DamageChart: React.FC<DamageChartProps> = ({
               name={build.name || `Build ${index + 1}`}
             />
           ))}
+
+          {/* Reference line showing current stat value */}
+          {snappedCurrentValue >= xAxisRange.min &&
+            snappedCurrentValue <= xAxisRange.max && (
+              <ReferenceLine
+                x={snappedCurrentValue}
+                stroke="#3333ff"
+                strokeWidth={2}
+                strokeDasharray="5 5"
+                label={{
+                  value: `Current: ${snappedCurrentValue}`,
+                  position: "top",
+                  fill: "#3333ff",
+                  fontSize: 12,
+                }}
+              />
+            )}
         </LineChart>
       </ResponsiveContainer>
     </div>
   );
-};
+}

@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   Dialog,
   DialogContent,
@@ -6,9 +5,9 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from './ui/dialog';
-import { Button } from './ui/button';
-import { AlertTriangle } from 'lucide-react';
+} from "./ui/dialog";
+import { Button } from "./ui/button";
+import { AlertTriangle } from "lucide-react";
 
 interface ConfirmDialogProps {
   isOpen: boolean;
@@ -17,22 +16,22 @@ interface ConfirmDialogProps {
   title: string;
   description: string;
   confirmText?: string;
-  confirmVariant?: 'default' | 'destructive';
+  confirmVariant?: "default" | "destructive";
 }
 
-export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
+export function ConfirmDialog({
   isOpen,
   onClose,
   onConfirm,
   title,
   description,
-  confirmText = 'Confirm',
-  confirmVariant = 'default'
-}) => {
-  const handleConfirm = () => {
+  confirmText = "Confirm",
+  confirmVariant = "default",
+}: ConfirmDialogProps) {
+  function handleConfirm() {
     onConfirm();
     onClose();
-  };
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -42,9 +41,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
             <AlertTriangle className="h-5 w-5 text-amber-500" />
             {title}
           </DialogTitle>
-          <DialogDescription>
-            {description}
-          </DialogDescription>
+          <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>
@@ -57,4 +54,4 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
       </DialogContent>
     </Dialog>
   );
-};
+}

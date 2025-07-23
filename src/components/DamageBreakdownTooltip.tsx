@@ -1,4 +1,3 @@
-import React from "react";
 import { DamageBreakdown } from "../types";
 
 interface DamageBreakdownTooltipProps {
@@ -7,15 +6,19 @@ interface DamageBreakdownTooltipProps {
   xAxisStat: string;
 }
 
-export const DamageBreakdownTooltip: React.FC<DamageBreakdownTooltipProps> = ({
+export function DamageBreakdownTooltip({
   breakdown,
   xValue,
   xAxisStat,
-}) => {
+}: DamageBreakdownTooltipProps) {
   if (!breakdown) return null;
 
-  const formatPercent = (value: number) => `${(value * 100).toFixed(1)}%`;
-  const formatNumber = (value: number) => value.toFixed(1);
+  function formatPercent(value: number) {
+    return `${(value * 100).toFixed(1)}%`;
+  }
+  function formatNumber(value: number) {
+    return value.toFixed(1);
+  }
 
   return (
     <div className="damage-breakdown-tooltip">
@@ -70,4 +73,4 @@ export const DamageBreakdownTooltip: React.FC<DamageBreakdownTooltipProps> = ({
       </div>
     </div>
   );
-};
+}

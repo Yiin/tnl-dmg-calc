@@ -1,11 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
-import { Build, Enemy, StatKey, DamageBreakdown } from "./types";
+import { Build, Enemy, StatKey } from "./types";
 import { BuildForm } from "./components/BuildForm";
 import { EnemyForm } from "./components/EnemyForm";
 import { DamageChart } from "./components/DamageChart";
 import { ChartControls } from "./components/ChartControls";
 import { serializeState, deserializeState } from "./utils/urlState";
-import { DamageBreakdownTooltip } from "./components/DamageBreakdownTooltip";
 import { ImportDialog } from "./components/ImportDialog";
 import { ConfirmDialog } from "./components/ConfirmDialog";
 import { DamageFormula } from "./components/DamageFormula";
@@ -168,7 +167,7 @@ function App() {
   const hasUrlHash = window.location.hash.length > 1;
 
   // Initialize state from URL hash if present, otherwise from localStorage
-  const getInitialState = useCallback(() => {
+  const getInitialState = useCallback(function() {
     if (hasUrlHash) {
       const hash = window.location.hash.substring(1);
       const urlState = deserializeState(hash);
@@ -265,15 +264,12 @@ function App() {
     initialState.activeEnemyTab
   );
 
-  const [hoveredBreakdown, setHoveredBreakdown] =
-    useState<DamageBreakdown | null>(null);
-  const [hoveredX, setHoveredX] = useState<number>(0);
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [showEnemyImportDialog, setShowEnemyImportDialog] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [showShareNotification, setShowShareNotification] = useState(false);
 
-  const addBuild = () => {
+  function addBuild() {
     const newBuild: Build = {
       ...defaultBuild,
       name: `Build ${builds.length + 1}`,
@@ -282,13 +278,13 @@ function App() {
     setActiveBuildTab(builds.length.toString()); // Switch to the new tab
   };
 
-  const updateBuild = (index: number, build: Build) => {
+  function updateBuild(index: number, build: Build) {
     const newBuilds = [...builds];
     newBuilds[index] = build;
     setBuilds(newBuilds);
   };
 
-  const removeBuild = (index: number) => {
+  function removeBuild(index: number) {
     if (builds.length > 1) {
       const newBuilds = builds.filter((_, i) => i !== index);
       setBuilds(newBuilds);
@@ -303,12 +299,12 @@ function App() {
     }
   };
 
-  const importBuild = (build: Build) => {
+  function importBuild(build: Build) {
     setBuilds([...builds, build]);
     setActiveBuildTab(builds.length.toString()); // Switch to the imported build tab
   };
 
-  const addEnemy = () => {
+  function addEnemy() {
     const newEnemy: Enemy = {
       ...defaultEnemy,
       name: `Enemy ${enemies.length + 1}`,
@@ -317,13 +313,13 @@ function App() {
     setActiveEnemyTab(enemies.length.toString()); // Switch to the new tab
   };
 
-  const updateEnemy = (index: number, enemy: Enemy) => {
+  function updateEnemy(index: number, enemy: Enemy) {
     const newEnemies = [...enemies];
     newEnemies[index] = enemy;
     setEnemies(newEnemies);
   };
 
-  const removeEnemy = (index: number) => {
+  function removeEnemy(index: number) {
     if (enemies.length > 1) {
       const newEnemies = enemies.filter((_, i) => i !== index);
       setEnemies(newEnemies);
@@ -338,12 +334,12 @@ function App() {
     }
   };
 
-  const importEnemy = (enemy: Enemy) => {
+  function importEnemy(enemy: Enemy) {
     setEnemies([...enemies, enemy]);
     setActiveEnemyTab(enemies.length.toString()); // Switch to the imported enemy tab
   };
 
-  const clearAll = () => {
+  function clearAll() {
     setBuilds([]);
     setEnemies([]);
     setXAxisStat("meleeEndurance");
@@ -360,7 +356,7 @@ function App() {
     localStorage.removeItem("tnl-damage-calc-enemy");
   };
 
-  const shareState = () => {
+  function shareState() {
     const currentState = {
       builds,
       enemies,
@@ -391,7 +387,7 @@ function App() {
   };
 
   // Update URL hash or localStorage based on current mode
-  const updatePersistence = useCallback(() => {
+  const updatePersistence = useCallback(function() {
     const currentState = {
       builds,
       enemies,
@@ -587,13 +583,6 @@ function App() {
             )}
           </div>
 
-          {hoveredBreakdown && (
-            <DamageBreakdownTooltip
-              breakdown={hoveredBreakdown}
-              xValue={hoveredX}
-              xAxisStat={xAxisStat}
-            />
-          )}
         </div>
 
         {/* Main chart area */}
@@ -628,10 +617,6 @@ function App() {
               skillPotency={skillConfig.skillPotency}
               skillFlatAdd={skillConfig.skillFlatAdd}
               hitsPerCast={skillConfig.hitsPerCast}
-              onPointHover={(breakdown, x) => {
-                setHoveredBreakdown(breakdown);
-                setHoveredX(x);
-              }}
             />
           </div>
 

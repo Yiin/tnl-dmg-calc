@@ -1,4 +1,3 @@
-import React from "react";
 import { Build } from "../types";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Input } from "./ui/input";
@@ -12,19 +11,15 @@ interface BuildFormProps {
   onRemove?: () => void;
 }
 
-export const BuildForm: React.FC<BuildFormProps> = ({
-  build,
-  onChange,
-  onRemove,
-}) => {
-  const handleInputChange = (field: keyof Build, value: string) => {
+export function BuildForm({ build, onChange, onRemove }: BuildFormProps) {
+  function handleInputChange(field: keyof Build, value: string) {
     const numValue = parseFloat(value) || 0;
     onChange({ ...build, [field]: numValue });
-  };
+  }
 
-  const handleNameChange = (value: string) => {
+  function handleNameChange(value: string) {
     onChange({ ...build, name: value });
-  };
+  }
 
   return (
     <Card>
@@ -445,4 +440,4 @@ export const BuildForm: React.FC<BuildFormProps> = ({
       </CardContent>
     </Card>
   );
-};
+}

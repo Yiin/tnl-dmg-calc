@@ -1,4 +1,3 @@
-import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Build, Enemy } from "../types";
 
@@ -13,7 +12,7 @@ interface DamageFormulaProps {
   hitsPerCast?: number;
 }
 
-export const DamageFormula: React.FC<DamageFormulaProps> = ({
+export function DamageFormula({
   build,
   enemy,
   combatType,
@@ -22,9 +21,9 @@ export const DamageFormula: React.FC<DamageFormulaProps> = ({
   skillPotency = 1.0,
   skillFlatAdd = 0,
   hitsPerCast = 1,
-}) => {
+}: DamageFormulaProps) {
   // Get the relevant stats based on combat type
-  const getCombatStats = () => {
+  function getCombatStats() {
     const prefix = combatType;
     return {
       critical: (build[`${prefix}Critical` as keyof Build] as number) || 0,
@@ -37,7 +36,7 @@ export const DamageFormula: React.FC<DamageFormulaProps> = ({
         (enemy[`${prefix}HeavyAttackEvasion` as keyof Enemy] as number) || 0,
       defense: (enemy[`${prefix}Defense` as keyof Enemy] as number) || 0,
     };
-  };
+  }
 
   const stats = getCombatStats();
 
@@ -200,11 +199,9 @@ export const DamageFormula: React.FC<DamageFormulaProps> = ({
               // Skill Damage Calculation
             </span>
             <br />
-            SkillPotency ={" "}
-            <span className="text-primary">{skillPotency}</span>
+            SkillPotency = <span className="text-primary">{skillPotency}</span>
             <br />
-            SkillFlatAdd ={" "}
-            <span className="text-primary">{skillFlatAdd}</span>
+            SkillFlatAdd = <span className="text-primary">{skillFlatAdd}</span>
             <br />
             SkillDamage = (SkillPotency × ExpectedBaseDamage) + SkillFlatAdd
           </div>
@@ -306,4 +303,4 @@ export const DamageFormula: React.FC<DamageFormulaProps> = ({
       </CardContent>
     </Card>
   );
-};
+}

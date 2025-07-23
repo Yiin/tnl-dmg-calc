@@ -1,4 +1,3 @@
-import React from "react";
 import { Enemy } from "../types";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Input } from "./ui/input";
@@ -12,19 +11,15 @@ interface EnemyFormProps {
   onRemove?: () => void;
 }
 
-export const EnemyForm: React.FC<EnemyFormProps> = ({
-  enemy,
-  onChange,
-  onRemove,
-}) => {
-  const handleInputChange = (field: keyof Enemy, value: string) => {
+export function EnemyForm({ enemy, onChange, onRemove }: EnemyFormProps) {
+  function handleInputChange(field: keyof Enemy, value: string) {
     const numValue = parseFloat(value) || 0;
     onChange({ ...enemy, [field]: numValue });
-  };
+  }
 
-  const handleNameChange = (value: string) => {
+  function handleNameChange(value: string) {
     onChange({ ...enemy, name: value });
-  };
+  }
 
   return (
     <Card>
@@ -310,4 +305,4 @@ export const EnemyForm: React.FC<EnemyFormProps> = ({
       </CardContent>
     </Card>
   );
-};
+}

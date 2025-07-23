@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Build, Enemy } from "../types";
 import { parseTextToBuild } from "../textParser";
 import {
@@ -30,20 +30,20 @@ interface ImportDialogProps {
   mode?: "build" | "enemy";
 }
 
-export const ImportDialog: React.FC<ImportDialogProps> = ({
+export function ImportDialog({
   isOpen,
   onClose,
   onImportBuild,
   onImportEnemy,
   mode = "build",
-}) => {
+}: ImportDialogProps) {
   const [name, setName] = useState("");
   const [pastedText, setPastedText] = useState("");
   const [importType, setImportType] = useState<"build" | "enemy">(mode);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleImport = async () => {
+  async function handleImport() {
     setIsLoading(true);
     setError(null);
 
@@ -94,20 +94,20 @@ export const ImportDialog: React.FC<ImportDialogProps> = ({
     } finally {
       setIsLoading(false);
     }
-  };
+  }
 
-  const handleClose = () => {
+  function handleClose() {
     setPastedText("");
     setName("");
     setError(null);
     onClose();
-  };
+  }
 
-  const handleOpenChange = (open: boolean) => {
+  function handleOpenChange(open: boolean) {
     if (!open) {
       handleClose();
     }
-  };
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
@@ -243,4 +243,4 @@ export const ImportDialog: React.FC<ImportDialogProps> = ({
       </DialogContent>
     </Dialog>
   );
-};
+}

@@ -1,4 +1,3 @@
-import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
@@ -14,14 +13,11 @@ interface SkillConfigFormProps {
   onChange: (config: SkillConfig) => void;
 }
 
-export const SkillConfigForm: React.FC<SkillConfigFormProps> = ({
-  config,
-  onChange,
-}) => {
-  const handleInputChange = (field: keyof SkillConfig, value: string) => {
+export function SkillConfigForm({ config, onChange }: SkillConfigFormProps) {
+  function handleInputChange(field: keyof SkillConfig, value: string) {
     const numValue = parseFloat(value) || 0;
     onChange({ ...config, [field]: numValue });
-  };
+  }
 
   return (
     <Card>
@@ -82,4 +78,4 @@ export const SkillConfigForm: React.FC<SkillConfigFormProps> = ({
       </CardContent>
     </Card>
   );
-};
+}

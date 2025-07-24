@@ -172,19 +172,22 @@ function tokenizeLines(lines: string[]): Token[] {
     }
 
     // Check if it's just a value (number with optional formatting)
-    if (/^[-\d,]+\.?\d*%?s?$/.test(line) || /^\(\d+\.?\d*%\)$/.test(line)) {
+    // Support both decimal dots (631.8) and decimal commas (631,8)
+    if (/^[-\d,\s]+\.?\d*%?s?$/.test(line) || /^\(\d+\.?\d*%\)$/.test(line) || /^[\d\s]+,\d{1,2}$/.test(line)) {
       tokens.push({ type: "value", content: line, lineIndex: i });
       continue;
     }
 
     // Check if it's a stat line with value and percentage
-    if (/^(.+?)\s+([\d,.-]+)\s*\((\d+\.?\d*)%\)$/.test(line)) {
+    // Support both decimal dots and commas
+    if (/^(.+?)\s+([\d,\s.-]+)\s*\((\d+\.?\d*)%\)$/.test(line)) {
       tokens.push({ type: "stat_name", content: line, lineIndex: i });
       continue;
     }
 
     // Check if it's a stat line with just a value
-    if (/^(.+?)\s+([-\d,\.%s]+)$/.test(line)) {
+    // Support both decimal dots and commas
+    if (/^(.+?)\s+([-\d,\s\.%]+)$/.test(line)) {
       tokens.push({ type: "stat_name", content: line, lineIndex: i });
       continue;
     }
@@ -215,8 +218,8 @@ function parseTokens(tokens: Token[], lines: string[]): any {
         tokens[i + 2].type === "separator" &&
         tokens[i + 3].type === "value"
       ) {
-        const minVal = parseInt(tokens[i + 1].content.replace(/,/g, ""));
-        const maxVal = parseInt(tokens[i + 3].content.replace(/,/g, ""));
+        const minVal = parseStatValue(tokens[i + 1].content) || 0;
+        const maxVal = parseStatValue(tokens[i + 3].content) || 0;
 
         if (weaponDamageCount === 0) {
           stats.minDMG = minVal;
@@ -237,11 +240,23 @@ function parseTokens(tokens: Token[], lines: string[]): any {
 
       // Parse stat with value and percentage on same line
       const percentMatch = line.match(
-        /^(.+?)\s+([\d,.-]+)\s*\((\d+\.?\d*)%\)$/
+        /^(.+?)\s+([\d,\s.-]+)\s*\((\d+\.?\d*)%\)$/
       );
       if (percentMatch) {
         const statName = percentMatch[1].trim();
-        const rawValue = parseFloat(percentMatch[2].replace(/,/g, ""));
+        const rawValueStr = percentMatch[2];
+        
+        // Use the same decimal comma handling
+        let rawValue;
+        const decimalCommaMatch = rawValueStr.match(/^([\d\s]+),(\d{1,2})$/);
+        if (decimalCommaMatch) {
+          const integerPart = decimalCommaMatch[1].replace(/\s/g, '');
+          const decimalPart = decimalCommaMatch[2];
+          rawValue = parseFloat(`${integerPart}.${decimalPart}`);
+        } else {
+          rawValue = parseFloat(rawValueStr.replace(/,/g, ""));
+        }
+        
         const percentValue = parseFloat(percentMatch[3]);
         stats[statName] = rawValue;
         stats[`${statName} Percent`] = percentValue;
@@ -249,7 +264,7 @@ function parseTokens(tokens: Token[], lines: string[]): any {
       }
 
       // Parse stat with value on same line
-      const simpleMatch = line.match(/^(.+?)\s+([-\d,\.%s]+)$/);
+      const simpleMatch = line.match(/^(.+?)\s+([-\d,\s\.%]+)$/);
       if (simpleMatch) {
         const statName = simpleMatch[1].trim();
         const value = simpleMatch[2].trim();
@@ -311,7 +326,20 @@ function parseStatValue(
 ): number | undefined {
   if (value === undefined) return undefined;
   if (typeof value === "number") return value;
-  return parseFloat(value.replace(/[,%]/g, ""));
+  
+  // Handle both comma as decimal separator (631,8) and as thousand separator (1,000)
+  // If the value has a comma followed by 1-2 digits at the end, treat it as decimal
+  const str = String(value);
+  const decimalCommaMatch = str.match(/^([\d\s]+),(\d{1,2})$/);
+  if (decimalCommaMatch) {
+    // Replace comma with dot for decimal: "631,8" -> "631.8"
+    const integerPart = decimalCommaMatch[1].replace(/\s/g, '');
+    const decimalPart = decimalCommaMatch[2];
+    return parseFloat(`${integerPart}.${decimalPart}`);
+  }
+  
+  // Otherwise, remove commas (thousand separators) and parse
+  return parseFloat(str.replace(/[,%]/g, ""));
 }
 
 function parsePercentage(

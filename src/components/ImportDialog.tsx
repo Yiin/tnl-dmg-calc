@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Build, Enemy } from "../types";
 import { parseTextToBuild } from "../textParser";
 import {
@@ -21,6 +21,8 @@ import {
 } from "./ui/select";
 import { Textarea } from "./ui/textarea";
 import { Loader2, AlertCircle, User, Shield, FileText } from "lucide-react";
+import { ImagePreview } from "./ImageModal";
+import importExample from "../assets/images/import-copy-example.png";
 
 interface ImportDialogProps {
   isOpen: boolean;
@@ -51,6 +53,16 @@ export function ImportDialog({
   const [importType, setImportType] = useState<"build" | "enemy">(mode);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (isOpen && textareaRef.current) {
+      // Small delay to ensure dialog is fully rendered
+      setTimeout(() => {
+        textareaRef.current?.focus();
+      }, 100);
+    }
+  }, [isOpen]);
 
   async function handleImport() {
     setIsLoading(true);
@@ -163,6 +175,7 @@ export function ImportDialog({
           <div className="space-y-2">
             <Label htmlFor="build-text">Build Stats Text</Label>
             <Textarea
+              ref={textareaRef}
               id="build-text"
               value={pastedText}
               onChange={(e) => setPastedText(e.target.value)}
@@ -230,10 +243,12 @@ export function ImportDialog({
                   href="https://questlog.gg/throne-and-liberty/en"
                   target="_blank"
                   rel="noopener noreferrer"
+                  className="text-primary hover:underline"
                 >
                   questlog.gg (English version)
                 </a>
               </li>
+              <li>Make sure the full stats tab is opened and not filtered</li>
               <li>Select all the text (Ctrl+A / Cmd+A)</li>
               <li>Copy the text (Ctrl+C / Cmd+C)</li>
               <li>
@@ -241,7 +256,17 @@ export function ImportDialog({
                 Import
               </li>
             </ol>
-            <p className="text-sm text-muted-foreground">
+
+            <div className="mt-4">
+              <p className="text-sm font-medium mb-2">Example:</p>
+              <ImagePreview
+                src={importExample}
+                alt="Example of how to copy stats from questlog.gg"
+                className="w-full"
+              />
+            </div>
+
+            <p className="text-sm text-muted-foreground mt-3">
               <strong>Note:</strong> Text import can extract weapon damage
               values and most character stats automatically.
               {importType === "build"

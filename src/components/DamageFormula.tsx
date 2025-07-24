@@ -210,6 +210,61 @@ export function DamageFormula({
             SkillDamage = (SkillPotency × ExpectedBaseDamage) + SkillFlatAdd
           </div>
 
+          {(build.weakenChance || 0) > 0 && (
+            <div className="whitespace-pre">
+              <span className="text-muted-foreground">
+                // Weaken Effect Calculation
+              </span>
+              <br />
+              WeakenChance = ({build.weakenChance || 0} - {enemy.weakenResistance || 0}) / (
+              {Math.max(0, (build.weakenChance || 0) - (enemy.weakenResistance || 0))} + 250) ={" "}
+              <span className="text-amber-500">
+                {(
+                  Math.max(0, (build.weakenChance || 0) - (enemy.weakenResistance || 0)) /
+                  (Math.max(0, (build.weakenChance || 0) - (enemy.weakenResistance || 0)) + 250)
+                ).toFixed(3)}
+              </span>
+              <br />
+              <span className="text-muted-foreground">
+                // Weaken uses 250 divisor (4x more effective than crit)
+              </span>
+              <br />
+              WeakenSkillPotency = <span className="text-primary">{weakenSkillPotency}</span>
+              <br />
+              WeakenSkillFlatAdd = <span className="text-primary">{weakenSkillFlatAdd}</span>
+              <br />
+              <span className="text-muted-foreground">
+                // Applied to skill calculation as expected values:
+              </span>
+              <br />
+              EffectiveSkillPotency = {skillPotency} + ({(
+                Math.max(0, (build.weakenChance || 0) - (enemy.weakenResistance || 0)) /
+                (Math.max(0, (build.weakenChance || 0) - (enemy.weakenResistance || 0)) + 250)
+              ).toFixed(3)} × {weakenSkillPotency}) ={" "}
+              <span className="text-amber-500">
+                {(
+                  skillPotency +
+                  (Math.max(0, (build.weakenChance || 0) - (enemy.weakenResistance || 0)) /
+                    (Math.max(0, (build.weakenChance || 0) - (enemy.weakenResistance || 0)) + 250)) *
+                    weakenSkillPotency
+                ).toFixed(3)}
+              </span>
+              <br />
+              EffectiveSkillFlatAdd = {skillFlatAdd} + ({(
+                Math.max(0, (build.weakenChance || 0) - (enemy.weakenResistance || 0)) /
+                (Math.max(0, (build.weakenChance || 0) - (enemy.weakenResistance || 0)) + 250)
+              ).toFixed(3)} × {weakenSkillFlatAdd}) ={" "}
+              <span className="text-amber-500">
+                {(
+                  skillFlatAdd +
+                  (Math.max(0, (build.weakenChance || 0) - (enemy.weakenResistance || 0)) /
+                    (Math.max(0, (build.weakenChance || 0) - (enemy.weakenResistance || 0)) + 250)) *
+                    weakenSkillFlatAdd
+                ).toFixed(1)}
+              </span>
+            </div>
+          )}
+
           <div className="whitespace-pre">
             <span className="text-muted-foreground">// Defense Reductions</span>
             <br />
@@ -261,8 +316,9 @@ export function DamageFormula({
               // Final Damage Formula (per source)
             </span>
             <br />
-            <span className="text-yellow-500">Damage</span> = ((((SkillPotency ×
-            BaseDamage) + SkillFlatAdd) ×
+            <span className="text-yellow-500">Damage</span> = ((((
+            {(build.weakenChance || 0) > 0 ? "Effective" : ""}SkillPotency ×
+            BaseDamage) + {(build.weakenChance || 0) > 0 ? "Effective" : ""}SkillFlatAdd) ×
             <br />
             <span className="ml-4">[DefenseReduction × SkillDamageBoost ×</span>
             <br />
@@ -278,6 +334,14 @@ export function DamageFormula({
               // Note: BaseDamage already includes critical damage bonus on
               crits
             </span>
+            {(build.weakenChance || 0) > 0 && (
+              <>
+                <br />
+                <span className="text-muted-foreground">
+                  // Note: Uses EffectiveSkillPotency/FlatAdd when weaken procs
+                </span>
+              </>
+            )}
             <br />
             <span className="text-muted-foreground">
               // Expected Damage Per Cast (accounting for hit chance)

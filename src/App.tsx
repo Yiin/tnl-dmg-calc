@@ -521,16 +521,20 @@ function App() {
                 </Button>
               </div>
               <div className="flex gap-2">
-                <Button onClick={addBuild} size="sm" className="flex-1 py-6">
-                  Add Build
-                </Button>
                 <Button
                   onClick={() => setShowImportDialog(true)}
-                  variant="outline"
                   size="sm"
                   className="flex-1 py-6"
                 >
                   Import Build
+                </Button>
+                <Button
+                  onClick={addBuild}
+                  size="sm"
+                  className="flex-1 py-6"
+                  variant="outline"
+                >
+                  Add Build
                 </Button>
               </div>
               <Button
@@ -644,16 +648,20 @@ function App() {
           <div className="space-y-4">
             <h2 className="text-xl font-semibold">Enemy Configuration</h2>
             <div className="flex gap-2">
-              <Button onClick={addEnemy} size="sm" className="flex-1 py-6">
-                Add Enemy
-              </Button>
               <Button
                 onClick={() => setShowEnemyImportDialog(true)}
-                variant="outline"
                 size="sm"
                 className="flex-1 py-6"
               >
                 Import Enemy
+              </Button>
+              <Button
+                onClick={addEnemy}
+                size="sm"
+                className="flex-1 py-6"
+                variant="outline"
+              >
+                Add Enemy
               </Button>
             </div>
 

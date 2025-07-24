@@ -53,16 +53,6 @@ export function ImportDialog({
   const [importType, setImportType] = useState<"build" | "enemy">(mode);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-  useEffect(() => {
-    if (isOpen && textareaRef.current) {
-      // Small delay to ensure dialog is fully rendered
-      setTimeout(() => {
-        textareaRef.current?.focus();
-      }, 100);
-    }
-  }, [isOpen]);
 
   async function handleImport() {
     setIsLoading(true);
@@ -175,14 +165,14 @@ export function ImportDialog({
           <div className="space-y-2">
             <Label htmlFor="build-text">Build Stats Text</Label>
             <Textarea
-              ref={textareaRef}
               id="build-text"
               value={pastedText}
-              onChange={(e) => setPastedText(e.target.value)}
+              onChange={(e) => setPastedText(e.target.value.trim())}
               placeholder="Paste your copied build stats here..."
               rows={8}
               disabled={isLoading}
               className="font-mono text-sm"
+              autoFocus
             />
             <p className="text-sm text-muted-foreground">
               Copy and paste the complete stats text from questlog.gg, including

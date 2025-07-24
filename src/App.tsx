@@ -167,76 +167,80 @@ function App() {
   const hasUrlHash = window.location.hash.length > 1;
 
   // Initialize state from URL hash if present, otherwise from localStorage
-  const getInitialState = useCallback(function() {
-    if (hasUrlHash) {
-      const hash = window.location.hash.substring(1);
-      const urlState = deserializeState(hash);
-      if (urlState) {
-        return {
-          builds: urlState.builds || [],
-          enemies: urlState.enemies || (urlState.enemy ? [urlState.enemy] : []),
-          xAxisStat: (urlState.xAxisStat || "meleeEndurance") as StatKey,
-          xAxisRange: urlState.xAxisRange || { min: 0, max: 3000, step: 100 },
-          yMetric: (urlState.yMetric || "expectedDamage") as
-            | "expectedDamage"
-            | "finalDamage"
-            | "critChance"
-            | "hitChance",
-          combatType: (urlState.combatType || "melee") as
-            | "melee"
-            | "ranged"
-            | "magic",
-          attackDirection: (urlState.attackDirection || "front") as
-            | "front"
-            | "side"
-            | "back",
-          isPvP: urlState.isPvP !== undefined ? urlState.isPvP : true,
-          skillConfig: urlState.skillConfig || defaultSkillConfig,
-          activeBuildTab: urlState.activeBuildTab || "0",
-          activeEnemyTab: urlState.activeEnemyTab || "0",
-        };
+  const getInitialState = useCallback(
+    function () {
+      if (hasUrlHash) {
+        const hash = window.location.hash.substring(1);
+        const urlState = deserializeState(hash);
+        if (urlState) {
+          return {
+            builds: urlState.builds || [],
+            enemies:
+              urlState.enemies || (urlState.enemy ? [urlState.enemy] : []),
+            xAxisStat: (urlState.xAxisStat || "meleeEndurance") as StatKey,
+            xAxisRange: urlState.xAxisRange || { min: 0, max: 3000, step: 100 },
+            yMetric: (urlState.yMetric || "expectedDamage") as
+              | "expectedDamage"
+              | "finalDamage"
+              | "critChance"
+              | "hitChance",
+            combatType: (urlState.combatType || "melee") as
+              | "melee"
+              | "ranged"
+              | "magic",
+            attackDirection: (urlState.attackDirection || "front") as
+              | "front"
+              | "side"
+              | "back",
+            isPvP: urlState.isPvP !== undefined ? urlState.isPvP : true,
+            skillConfig: urlState.skillConfig || defaultSkillConfig,
+            activeBuildTab: urlState.activeBuildTab || "0",
+            activeEnemyTab: urlState.activeEnemyTab || "0",
+          };
+        }
       }
-    }
 
-    // Fall back to localStorage
-    const legacyEnemy = loadFromStorage("tnl-damage-calc-enemy", null);
-    return {
-      builds: loadFromStorage(STORAGE_KEYS.builds, []),
-      enemies: loadFromStorage(
-        STORAGE_KEYS.enemies,
-        legacyEnemy ? [legacyEnemy] : []
-      ),
-      xAxisStat: loadFromStorage(
-        STORAGE_KEYS.xAxisStat,
-        "meleeEndurance"
-      ) as StatKey,
-      xAxisRange: loadFromStorage(STORAGE_KEYS.xAxisRange, {
-        min: 0,
-        max: 3000,
-        step: 100,
-      }),
-      yMetric: loadFromStorage(STORAGE_KEYS.yMetric, "expectedDamage") as
-        | "expectedDamage"
-        | "finalDamage"
-        | "critChance"
-        | "hitChance",
-      combatType: loadFromStorage(STORAGE_KEYS.combatType, "melee") as
-        | "melee"
-        | "ranged"
-        | "magic",
-      attackDirection: loadFromStorage(
-        STORAGE_KEYS.attackDirection,
-        "front"
-      ) as "front" | "side" | "back",
-      isPvP: loadFromStorage(STORAGE_KEYS.isPvP, true),
-      skillConfig: loadFromStorage(
-        STORAGE_KEYS.skillConfig,
-        defaultSkillConfig
-      ),
-      activeBuildTab: loadFromStorage(STORAGE_KEYS.activeBuildTab, "0"),
-      activeEnemyTab: loadFromStorage(STORAGE_KEYS.activeEnemyTab, "0"),
-    };
-  }, [hasUrlHash]);
+      // Fall back to localStorage
+      const legacyEnemy = loadFromStorage("tnl-damage-calc-enemy", null);
+      return {
+        builds: loadFromStorage(STORAGE_KEYS.builds, []),
+        enemies: loadFromStorage(
+          STORAGE_KEYS.enemies,
+          legacyEnemy ? [legacyEnemy] : []
+        ),
+        xAxisStat: loadFromStorage(
+          STORAGE_KEYS.xAxisStat,
+          "meleeEndurance"
+        ) as StatKey,
+        xAxisRange: loadFromStorage(STORAGE_KEYS.xAxisRange, {
+          min: 0,
+          max: 3000,
+          step: 100,
+        }),
+        yMetric: loadFromStorage(STORAGE_KEYS.yMetric, "expectedDamage") as
+          | "expectedDamage"
+          | "finalDamage"
+          | "critChance"
+          | "hitChance",
+        combatType: loadFromStorage(STORAGE_KEYS.combatType, "melee") as
+          | "melee"
+          | "ranged"
+          | "magic",
+        attackDirection: loadFromStorage(
+          STORAGE_KEYS.attackDirection,
+          "front"
+        ) as "front" | "side" | "back",
+        isPvP: loadFromStorage(STORAGE_KEYS.isPvP, true),
+        skillConfig: loadFromStorage(
+          STORAGE_KEYS.skillConfig,
+          defaultSkillConfig
+        ),
+        activeBuildTab: loadFromStorage(STORAGE_KEYS.activeBuildTab, "0"),
+        activeEnemyTab: loadFromStorage(STORAGE_KEYS.activeEnemyTab, "0"),
+      };
+    },
+    [hasUrlHash]
+  );
 
   const initialState = getInitialState();
 
@@ -276,16 +280,16 @@ function App() {
     };
     setBuilds([...builds, newBuild]);
     setActiveBuildTab(builds.length.toString()); // Switch to the new tab
-  };
+  }
 
   function updateBuild(index: number, build: Build) {
     const newBuilds = [...builds];
     newBuilds[index] = build;
     setBuilds(newBuilds);
-  };
+  }
 
   function removeBuild(index: number) {
-    if (builds.length > 1) {
+    if (builds.length > 0) {
       const newBuilds = builds.filter((_, i) => i !== index);
       setBuilds(newBuilds);
 
@@ -297,12 +301,12 @@ function App() {
         setActiveBuildTab((currentTab - 1).toString());
       }
     }
-  };
+  }
 
   function importBuild(build: Build) {
     setBuilds([...builds, build]);
     setActiveBuildTab(builds.length.toString()); // Switch to the imported build tab
-  };
+  }
 
   function addEnemy() {
     const newEnemy: Enemy = {
@@ -311,16 +315,16 @@ function App() {
     };
     setEnemies([...enemies, newEnemy]);
     setActiveEnemyTab(enemies.length.toString()); // Switch to the new tab
-  };
+  }
 
   function updateEnemy(index: number, enemy: Enemy) {
     const newEnemies = [...enemies];
     newEnemies[index] = enemy;
     setEnemies(newEnemies);
-  };
+  }
 
   function removeEnemy(index: number) {
-    if (enemies.length > 1) {
+    if (enemies.length > 0) {
       const newEnemies = enemies.filter((_, i) => i !== index);
       setEnemies(newEnemies);
 
@@ -332,12 +336,12 @@ function App() {
         setActiveEnemyTab((currentTab - 1).toString());
       }
     }
-  };
+  }
 
   function importEnemy(enemy: Enemy) {
     setEnemies([...enemies, enemy]);
     setActiveEnemyTab(enemies.length.toString()); // Switch to the imported enemy tab
-  };
+  }
 
   function clearAll() {
     setBuilds([]);
@@ -354,7 +358,7 @@ function App() {
     });
     // Also clear legacy enemy key
     localStorage.removeItem("tnl-damage-calc-enemy");
-  };
+  }
 
   function shareState() {
     const currentState = {
@@ -384,11 +388,45 @@ function App() {
       .catch((err) => {
         console.error("Failed to copy URL:", err);
       });
-  };
+  }
 
   // Update URL hash or localStorage based on current mode
-  const updatePersistence = useCallback(function() {
-    const currentState = {
+  const updatePersistence = useCallback(
+    function () {
+      const currentState = {
+        builds,
+        enemies,
+        xAxisStat,
+        xAxisRange,
+        yMetric,
+        combatType,
+        attackDirection,
+        isPvP,
+        skillConfig,
+        activeBuildTab,
+        activeEnemyTab,
+      };
+
+      if (window.location.hash.length > 1) {
+        // Update URL hash
+        const hash = serializeState(currentState);
+        window.history.replaceState(null, "", `#${hash}`);
+      } else {
+        // Update localStorage
+        saveToStorage(STORAGE_KEYS.builds, builds);
+        saveToStorage(STORAGE_KEYS.enemies, enemies);
+        saveToStorage(STORAGE_KEYS.xAxisStat, xAxisStat);
+        saveToStorage(STORAGE_KEYS.xAxisRange, xAxisRange);
+        saveToStorage(STORAGE_KEYS.yMetric, yMetric);
+        saveToStorage(STORAGE_KEYS.combatType, combatType);
+        saveToStorage(STORAGE_KEYS.attackDirection, attackDirection);
+        saveToStorage(STORAGE_KEYS.isPvP, isPvP);
+        saveToStorage(STORAGE_KEYS.skillConfig, skillConfig);
+        saveToStorage(STORAGE_KEYS.activeBuildTab, activeBuildTab);
+        saveToStorage(STORAGE_KEYS.activeEnemyTab, activeEnemyTab);
+      }
+    },
+    [
       builds,
       enemies,
       xAxisStat,
@@ -400,39 +438,8 @@ function App() {
       skillConfig,
       activeBuildTab,
       activeEnemyTab,
-    };
-
-    if (window.location.hash.length > 1) {
-      // Update URL hash
-      const hash = serializeState(currentState);
-      window.history.replaceState(null, "", `#${hash}`);
-    } else {
-      // Update localStorage
-      saveToStorage(STORAGE_KEYS.builds, builds);
-      saveToStorage(STORAGE_KEYS.enemies, enemies);
-      saveToStorage(STORAGE_KEYS.xAxisStat, xAxisStat);
-      saveToStorage(STORAGE_KEYS.xAxisRange, xAxisRange);
-      saveToStorage(STORAGE_KEYS.yMetric, yMetric);
-      saveToStorage(STORAGE_KEYS.combatType, combatType);
-      saveToStorage(STORAGE_KEYS.attackDirection, attackDirection);
-      saveToStorage(STORAGE_KEYS.isPvP, isPvP);
-      saveToStorage(STORAGE_KEYS.skillConfig, skillConfig);
-      saveToStorage(STORAGE_KEYS.activeBuildTab, activeBuildTab);
-      saveToStorage(STORAGE_KEYS.activeEnemyTab, activeEnemyTab);
-    }
-  }, [
-    builds,
-    enemies,
-    xAxisStat,
-    xAxisRange,
-    yMetric,
-    combatType,
-    attackDirection,
-    isPvP,
-    skillConfig,
-    activeBuildTab,
-    activeEnemyTab,
-  ]);
+    ]
+  );
 
   // Persist state changes
   useEffect(() => {
@@ -573,16 +580,13 @@ function App() {
                       onChange={(updatedBuild) =>
                         updateBuild(index, updatedBuild)
                       }
-                      onRemove={
-                        builds.length > 1 ? () => removeBuild(index) : undefined
-                      }
+                      onRemove={() => removeBuild(index)}
                     />
                   </TabsContent>
                 ))}
               </Tabs>
             )}
           </div>
-
         </div>
 
         {/* Main chart area */}
@@ -685,11 +689,7 @@ function App() {
                       onChange={(updatedEnemy) =>
                         updateEnemy(index, updatedEnemy)
                       }
-                      onRemove={
-                        enemies.length > 1
-                          ? () => removeEnemy(index)
-                          : undefined
-                      }
+                      onRemove={() => removeEnemy(index)}
                     />
                   </TabsContent>
                 ))}

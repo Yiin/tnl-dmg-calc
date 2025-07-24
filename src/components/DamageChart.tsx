@@ -204,7 +204,7 @@ export function DamageChart({
       tooltipCacheRef.current.set(cacheKey, result);
 
       // Keep cache size reasonable (LRU-like behavior)
-      if (tooltipCacheRef.current.size > 100) {
+      if (tooltipCacheRef.current.size > 300) {
         const firstKey = tooltipCacheRef.current.keys().next().value;
         tooltipCacheRef.current.delete(firstKey!);
       }

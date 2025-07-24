@@ -25,6 +25,8 @@ interface DamageChartProps {
   skillPotency?: number;
   skillFlatAdd?: number;
   hitsPerCast?: number;
+  weakenSkillPotency?: number;
+  weakenSkillFlatAdd?: number;
 }
 
 const COLORS = [
@@ -48,6 +50,8 @@ export function DamageChart({
   skillPotency = 1.0,
   skillFlatAdd = 0,
   hitsPerCast = 1,
+  weakenSkillPotency = 0,
+  weakenSkillFlatAdd = 0,
 }: DamageChartProps) {
   console.log("Render DamageChart");
   // Determine if the stat belongs to build or enemy based on the stat name
@@ -113,7 +117,9 @@ export function DamageChart({
           isPvP,
           skillPotency,
           skillFlatAdd,
-          hitsPerCast
+          hitsPerCast,
+          weakenSkillPotency,
+          weakenSkillFlatAdd
         );
         point[`build${index}`] = breakdown[yMetric];
       });

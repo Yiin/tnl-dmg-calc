@@ -77,6 +77,9 @@ export interface Build {
   // Resistance stats
   damageReduction?: number;
   skillDamageResistance?: number;
+
+  // Status effect chances
+  weakenChance?: number;
 }
 
 export interface Enemy {
@@ -159,6 +162,7 @@ export interface DamageBreakdown {
   normalChance: number;
   hitChance: number;
   heavyChance: number;
+  weakenChance: number;
   skillMultiplier: number;
   defenseReduction: number;
   finalDamage: number;

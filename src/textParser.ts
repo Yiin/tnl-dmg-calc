@@ -75,6 +75,7 @@ export function parseTextToBuild(
 
     // Skill stats
     skillDamageBoost: parseStatValue(stats["Skill Damage Boost"]),
+    weakenChance: parseStatValue(stats["Weaken Chance"]),
 
     // Off-hand chance
     offhandChance:

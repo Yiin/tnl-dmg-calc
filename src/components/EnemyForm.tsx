@@ -300,6 +300,20 @@ export function EnemyForm({ enemy, onChange, onRemove }: EnemyFormProps) {
                 className="h-8 text-xs"
               />
             </div>
+            <div className="space-y-1">
+              <Label htmlFor="weakenResistance" className="text-xs">
+                Weaken Resistance
+              </Label>
+              <Input
+                id="weakenResistance"
+                type="number"
+                value={enemy.weakenResistance || 0}
+                onChange={(e) =>
+                  handleInputChange("weakenResistance", e.target.value)
+                }
+                className="h-8 text-xs"
+              />
+            </div>
           </div>
         </div>
       </CardContent>

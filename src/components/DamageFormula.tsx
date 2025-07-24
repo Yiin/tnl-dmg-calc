@@ -10,6 +10,8 @@ interface DamageFormulaProps {
   skillPotency?: number;
   skillFlatAdd?: number;
   hitsPerCast?: number;
+  weakenSkillPotency?: number;
+  weakenSkillFlatAdd?: number;
 }
 
 export function DamageFormula({
@@ -21,6 +23,8 @@ export function DamageFormula({
   skillPotency = 1.0,
   skillFlatAdd = 0,
   hitsPerCast = 1,
+  weakenSkillPotency = 0,
+  weakenSkillFlatAdd = 0,
 }: DamageFormulaProps) {
   // Get the relevant stats based on combat type
   function getCombatStats() {

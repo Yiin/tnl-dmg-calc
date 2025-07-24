@@ -17,6 +17,8 @@ interface SkillConfig {
   skillPotency: number;
   skillFlatAdd: number;
   hitsPerCast: number;
+  weakenSkillPotency: number;
+  weakenSkillFlatAdd: number;
 }
 
 const defaultBuild: Build = {
@@ -41,6 +43,8 @@ const defaultSkillConfig: SkillConfig = {
   skillPotency: 1.0,
   skillFlatAdd: 0,
   hitsPerCast: 1,
+  weakenSkillPotency: 0,
+  weakenSkillFlatAdd: 0,
 };
 
 const defaultEnemy: Enemy = {
@@ -175,8 +179,7 @@ function App() {
         if (urlState) {
           return {
             builds: urlState.builds || [],
-            enemies:
-              urlState.enemies || (urlState.enemy ? [urlState.enemy] : []),
+            enemies: urlState.enemies || [],
             xAxisStat: (urlState.xAxisStat || "meleeEndurance") as StatKey,
             xAxisRange: urlState.xAxisRange || { min: 0, max: 3000, step: 100 },
             yMetric: (urlState.yMetric || "expectedDamage") as
@@ -201,13 +204,9 @@ function App() {
       }
 
       // Fall back to localStorage
-      const legacyEnemy = loadFromStorage("tnl-damage-calc-enemy", null);
       return {
         builds: loadFromStorage(STORAGE_KEYS.builds, []),
-        enemies: loadFromStorage(
-          STORAGE_KEYS.enemies,
-          legacyEnemy ? [legacyEnemy] : []
-        ),
+        enemies: loadFromStorage(STORAGE_KEYS.enemies, []),
         xAxisStat: loadFromStorage(
           STORAGE_KEYS.xAxisStat,
           "meleeEndurance"
@@ -356,8 +355,6 @@ function App() {
     Object.values(STORAGE_KEYS).forEach((key) => {
       localStorage.removeItem(key);
     });
-    // Also clear legacy enemy key
-    localStorage.removeItem("tnl-damage-calc-enemy");
   }
 
   function shareState() {
@@ -621,6 +618,8 @@ function App() {
               skillPotency={skillConfig.skillPotency}
               skillFlatAdd={skillConfig.skillFlatAdd}
               hitsPerCast={skillConfig.hitsPerCast}
+              weakenSkillPotency={skillConfig.weakenSkillPotency}
+              weakenSkillFlatAdd={skillConfig.weakenSkillFlatAdd}
             />
           </div>
 
@@ -634,6 +633,8 @@ function App() {
               skillPotency={skillConfig.skillPotency}
               skillFlatAdd={skillConfig.skillFlatAdd}
               hitsPerCast={skillConfig.hitsPerCast}
+              weakenSkillPotency={skillConfig.weakenSkillPotency}
+              weakenSkillFlatAdd={skillConfig.weakenSkillFlatAdd}
             />
           )}
         </div>

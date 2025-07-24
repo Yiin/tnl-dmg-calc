@@ -30,6 +30,15 @@ interface ImportDialogProps {
   mode?: "build" | "enemy";
 }
 
+function extractWeakenResistance(text: string): number {
+  // Look for "Weaken Resistance" followed by a number
+  const match = text.match(/Weaken Resistance\s+([\d,]+)/i);
+  if (match) {
+    return parseInt(match[1].replace(/,/g, ""), 10);
+  }
+  return 0;
+}
+
 export function ImportDialog({
   isOpen,
   onClose,
@@ -79,6 +88,7 @@ export function ImportDialog({
           magicDefense: parsedBuild.magicDefense || 500,
           damageReduction: parsedBuild.damageReduction || 0,
           skillDamageResistance: parsedBuild.skillDamageResistance || 0,
+          weakenResistance: extractWeakenResistance(pastedText),
         };
         onImportEnemy(enemyData);
       }

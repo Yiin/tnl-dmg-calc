@@ -168,6 +168,15 @@ export function heavyChance(
   return diff / (diff + 1000);
 }
 
+export function weakenChance(
+  weaken: number = 0,
+  weakenResistance: number = 0
+): number {
+  const diff = Math.max(0, weaken - weakenResistance);
+  // Weaken uses 250 divisor instead of 1000, making it 4x more effective
+  return diff / (diff + 250);
+}
+
 export function skillMultiplier(
   skillBoost: number = 0,
   skillResist: number = 0
@@ -222,7 +231,9 @@ export function calculateDamage(
   isPVP: boolean = true,
   skillPotency: number = 1.0,
   skillFlatAdd: number = 0,
-  hitsPerCast: number = 1
+  hitsPerCast: number = 1,
+  weakenSkillPotency: number = 0,
+  weakenSkillFlatAdd: number = 0
 ): DamageBreakdown {
   const { buildStats, enemyStats } = getCombatTypeStats(
     build,
@@ -262,11 +273,18 @@ export function calculateDamage(
   // Total base damage
   const baseDamageRaw = mainHandBaseDamage + offhandDamage;
 
+  // Calculate weaken chance
+  const weakenProb = weakenChance(build.weakenChance || 0, enemy.weakenResistance || 0);
+  
+  // Apply weaken bonuses to skill potency and flat add if weaken procs
+  const effectiveSkillPotency = skillPotency + (weakenProb * weakenSkillPotency);
+  const effectiveSkillFlatAdd = skillFlatAdd + (weakenProb * weakenSkillFlatAdd);
+
   // Step 2: Apply Reddit Formula Structure
   // ((((Skill Potency * Base Damage) + Skill Damage) * [Multipliers]) * Heavy Attack) + Bonus Damage - Damage Reduction
 
   // 2a: (Skill Potency * Base Damage) + Skill Damage
-  const coreSkillDamage = skillPotency * baseDamageRaw + skillFlatAdd;
+  const coreSkillDamage = effectiveSkillPotency * baseDamageRaw + effectiveSkillFlatAdd;
 
   // 2b: Calculate all multipliers according to Reddit post
   const defReduction = defenseReduction(enemyStats.defense);
@@ -342,6 +360,7 @@ export function calculateDamage(
     normalChance,
     hitChance: hitProb,
     heavyChance: heavyProb,
+    weakenChance: weakenProb,
     skillMultiplier: skillBoostMult,
     defenseReduction: defReduction,
     finalDamage,
@@ -359,7 +378,9 @@ export function calculateDPS(
   isPVP: boolean = true,
   skillPotency: number = 1.0,
   skillFlatAdd: number = 0,
-  hitsPerCast: number = 1
+  hitsPerCast: number = 1,
+  weakenSkillPotency: number = 0,
+  weakenSkillFlatAdd: number = 0
 ): number {
   const damage = calculateDamage(
     build,
@@ -369,7 +390,9 @@ export function calculateDPS(
     isPVP,
     skillPotency,
     skillFlatAdd,
-    hitsPerCast
+    hitsPerCast,
+    weakenSkillPotency,
+    weakenSkillFlatAdd
   );
   const effectiveCooldown = Math.max(cooldownTime, castTime);
   return damage.expectedDamage / effectiveCooldown;

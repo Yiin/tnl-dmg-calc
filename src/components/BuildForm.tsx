@@ -315,6 +315,20 @@ export function BuildForm({ build, onChange, onRemove }: BuildFormProps) {
                 className="h-8 text-xs"
               />
             </div>
+            <div className="space-y-1">
+              <Label htmlFor="weakenChance" className="text-xs">
+                Weaken Chance
+              </Label>
+              <Input
+                id="weakenChance"
+                type="number"
+                value={build.weakenChance || 0}
+                onChange={(e) =>
+                  handleInputChange("weakenChance", e.target.value)
+                }
+                className="h-8 text-xs"
+              />
+            </div>
           </div>
         </div>
 

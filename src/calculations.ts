@@ -368,6 +368,39 @@ export function calculateDamage(
   };
 }
 
+export function calculateActualCastTime(
+  baseCastTime: number,
+  attackSpeedTime?: number,
+  baseAttackSpeed: number = 1.0
+): number {
+  // If we have the actual attack speed time from import, use it to calculate the multiplier
+  if (attackSpeedTime) {
+    // The attack speed time represents the actual interval between attacks
+    // We use this to scale the cast time proportionally
+    const speedMultiplier = attackSpeedTime / baseAttackSpeed;
+    return baseCastTime * speedMultiplier;
+  }
+  // If no attack speed provided, return base cast time
+  return baseCastTime;
+}
+
+export function calculateActualCooldown(
+  baseCooldown: number,
+  cooldownSpeed?: number,
+  skillCooldownSpecialization: number = 0
+): number {
+  // Formula: (Base Skill Cooldown - Skill Cooldown Specializations) * (100% - (Cooldown Speed / (Cooldown Speed + 100%)))
+  const adjustedCooldown = baseCooldown - skillCooldownSpecialization;
+  
+  if (cooldownSpeed && cooldownSpeed > 0) {
+    // Calculate the cooldown reduction percentage using the diminishing returns formula
+    const cooldownReduction = cooldownSpeed / (cooldownSpeed + 100);
+    return adjustedCooldown * (1 - cooldownReduction);
+  }
+  
+  return adjustedCooldown;
+}
+
 export function calculateDPS(
   build: Build,
   enemy: Enemy,
@@ -380,7 +413,8 @@ export function calculateDPS(
   skillFlatAdd: number = 0,
   hitsPerCast: number = 1,
   weakenSkillPotency: number = 0,
-  weakenSkillFlatAdd: number = 0
+  weakenSkillFlatAdd: number = 0,
+  skillCooldownSpecialization: number = 0
 ): number {
   const damage = calculateDamage(
     build,
@@ -394,6 +428,15 @@ export function calculateDPS(
     weakenSkillPotency,
     weakenSkillFlatAdd
   );
-  const effectiveCooldown = Math.max(cooldownTime, castTime);
+  
+  // Calculate actual cast time based on attack speed
+  const actualCastTime = calculateActualCastTime(castTime, build.attackSpeedTime);
+  
+  // Calculate actual cooldown based on cooldown speed
+  const actualCooldown = calculateActualCooldown(cooldownTime, build.cooldownSpeed, skillCooldownSpecialization);
+  
+  // The effective cooldown is the max of actual cooldown and actual cast time
+  const effectiveCooldown = Math.max(actualCooldown, actualCastTime);
+  
   return damage.expectedDamage / effectiveCooldown;
 }

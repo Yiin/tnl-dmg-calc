@@ -139,6 +139,85 @@ export function BuildForm({ build, onChange, onRemove }: BuildFormProps) {
 
         <div className="space-y-2">
           <h4 className="text-sm font-medium text-muted-foreground">
+            Attack Speed
+          </h4>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <Label htmlFor="attackSpeedPercent" className="text-xs">
+                Attack Speed %
+              </Label>
+              <Input
+                id="attackSpeedPercent"
+                type="number"
+                value={build.attackSpeedPercent || 0}
+                onChange={(e) =>
+                  handleInputChange("attackSpeedPercent", e.target.value)
+                }
+                className="h-8 text-xs"
+                placeholder="63"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="attackSpeedTime" className="text-xs">
+                Attack Speed (s)
+              </Label>
+              <Input
+                id="attackSpeedTime"
+                type="number"
+                step="0.01"
+                value={build.attackSpeedTime || 0}
+                onChange={(e) =>
+                  handleInputChange("attackSpeedTime", e.target.value)
+                }
+                className="h-8 text-xs"
+                placeholder="0.36"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <h4 className="text-sm font-medium text-muted-foreground">
+            Cooldown Speed
+          </h4>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <Label htmlFor="cooldownSpeed" className="text-xs">
+                Cooldown Speed
+              </Label>
+              <Input
+                id="cooldownSpeed"
+                type="number"
+                step="0.1"
+                value={build.cooldownSpeed || 0}
+                onChange={(e) =>
+                  handleInputChange("cooldownSpeed", e.target.value)
+                }
+                className="h-8 text-xs"
+                placeholder="40.9"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="cooldownSpeedPercent" className="text-xs">
+                CDR %
+              </Label>
+              <Input
+                id="cooldownSpeedPercent"
+                type="number"
+                step="0.1"
+                value={build.cooldownSpeedPercent || 0}
+                onChange={(e) =>
+                  handleInputChange("cooldownSpeedPercent", e.target.value)
+                }
+                className="h-8 text-xs"
+                placeholder="29.0"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <h4 className="text-sm font-medium text-muted-foreground">
             Critical Hit
           </h4>
           <div className="grid grid-cols-2 gap-3">

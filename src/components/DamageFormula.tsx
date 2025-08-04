@@ -14,6 +14,9 @@ interface DamageFormulaProps {
   hitsPerCast?: number;
   weakenSkillPotency?: number;
   weakenSkillFlatAdd?: number;
+  cooldownTime?: number;
+  castTime?: number;
+  skillCooldownSpecialization?: number;
 }
 
 export function DamageFormula({
@@ -27,6 +30,9 @@ export function DamageFormula({
   hitsPerCast = 1,
   weakenSkillPotency = 0,
   weakenSkillFlatAdd = 0,
+  cooldownTime = 10,
+  castTime = 1,
+  skillCooldownSpecialization = 0,
 }: DamageFormulaProps) {
   // Get the relevant stats based on combat type
   function getCombatStats() {
@@ -147,6 +153,22 @@ export function DamageFormula({
   // Expected damage per cast
   const expectedDamage = damage * hitChance * hitsPerCast;
 
+  // Calculate actual cast time with attack speed
+  const actualCastTime = build.attackSpeedTime 
+    ? castTime * (build.attackSpeedTime / 1.0) 
+    : castTime;
+  
+  // Calculate actual cooldown with cooldown speed
+  const adjustedCooldown = cooldownTime - skillCooldownSpecialization;
+  const cooldownReduction = build.cooldownSpeed 
+    ? build.cooldownSpeed / (build.cooldownSpeed + 100)
+    : 0;
+  const actualCooldown = adjustedCooldown * (1 - cooldownReduction);
+  
+  // Calculate DPS
+  const effectiveCooldown = Math.max(actualCooldown, actualCastTime);
+  const dps = expectedDamage / effectiveCooldown;
+
   const formula = `// Throne & Liberty Damage Formula
 // ${combatType} combat, ${attackDirection} attack, ${isPvP ? "PvP" : "PvE"}
 
@@ -155,12 +177,18 @@ export function DamageFormula({
 //========================================
 Damage per Hit: ${damage.toFixed(1)}
 Expected Damage per Cast: ${expectedDamage.toFixed(1)}
+DPS: ${dps.toFixed(1)}
 
 Key Chances:
 - Hit Chance: ${(hitChance * 100).toFixed(1)}%
 - Crit Chance: ${(critChance * 100).toFixed(1)}%
 - Heavy Attack: ${(heavyChanceVal * 100).toFixed(1)}%${(build.weakenChance || 0) > 0 ? `
 - Weaken Chance: ${(weakenChance * 100).toFixed(1)}%` : ''}
+
+Timing:
+- Base Cast Time: ${castTime}s${build.attackSpeedTime ? ` → ${actualCastTime.toFixed(2)}s (with attack speed)` : ''}
+- Base Cooldown: ${cooldownTime}s${build.cooldownSpeed ? ` → ${actualCooldown.toFixed(2)}s (with cooldown speed)` : ''}
+- Effective Cooldown: ${effectiveCooldown.toFixed(2)}s
 
 //========================================
 // BASE DAMAGE CALCULATION
@@ -316,7 +344,46 @@ Damage = DamageBeforeBonus + BonusDamage - DamageReduction
 // Step 3: Apply hit chance and hits per cast
 ExpectedDamage = Damage × HitChance × HitsPerCast
                = ${damage.toFixed(1)} × ${hitChance.toFixed(3)} × ${hitsPerCast}
-               = ${expectedDamage.toFixed(1)}`;
+               = ${expectedDamage.toFixed(1)}
+
+//========================================
+// ATTACK SPEED & COOLDOWN CALCULATIONS
+//========================================
+${build.attackSpeedTime ? `// Attack Speed reduces cast time proportionally
+BaseAttackSpeed = 1.0s (reference speed)
+PlayerAttackSpeed = ${build.attackSpeedTime}s${build.attackSpeedPercent ? ` (${build.attackSpeedPercent}% faster)` : ''}
+SpeedMultiplier = PlayerAttackSpeed / BaseAttackSpeed
+                = ${build.attackSpeedTime} / 1.0 = ${(build.attackSpeedTime / 1.0).toFixed(3)}
+
+ActualCastTime = BaseCastTime × SpeedMultiplier
+               = ${castTime}s × ${(build.attackSpeedTime / 1.0).toFixed(3)}
+               = ${actualCastTime.toFixed(2)}s
+` : '// No attack speed modifier - using base cast time\n'}
+${build.cooldownSpeed ? `// Cooldown Speed reduces cooldown with diminishing returns
+// Formula: (BaseCooldown - Specialization) × (1 - (CooldownSpeed / (CooldownSpeed + 100)))
+AdjustedCooldown = BaseCooldown - Specialization
+                 = ${cooldownTime}s - ${skillCooldownSpecialization}s = ${adjustedCooldown}s
+
+CooldownReduction = CooldownSpeed / (CooldownSpeed + 100)
+                  = ${build.cooldownSpeed} / (${build.cooldownSpeed} + 100)
+                  = ${build.cooldownSpeed} / ${build.cooldownSpeed + 100} = ${cooldownReduction.toFixed(3)}
+
+ActualCooldown = AdjustedCooldown × (1 - CooldownReduction)
+               = ${adjustedCooldown}s × (1 - ${cooldownReduction.toFixed(3)})
+               = ${adjustedCooldown}s × ${(1 - cooldownReduction).toFixed(3)}
+               = ${actualCooldown.toFixed(2)}s
+` : '// No cooldown speed modifier - using base cooldown\n'}
+//========================================
+// DPS CALCULATION
+//========================================
+// The skill can be used again after max(cooldown, cast time)
+EffectiveCooldown = max(ActualCooldown, ActualCastTime)
+                  = max(${actualCooldown.toFixed(2)}s, ${actualCastTime.toFixed(2)}s)
+                  = ${effectiveCooldown.toFixed(2)}s
+
+DPS = ExpectedDamage / EffectiveCooldown
+    = ${expectedDamage.toFixed(1)} / ${effectiveCooldown.toFixed(2)}
+    = ${dps.toFixed(1)} damage per second`;
 
   // Custom theme based on the original colors
   const customStyle = {

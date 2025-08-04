@@ -36,6 +36,14 @@ export interface Build {
   // Skill stats
   skillDamageBoost?: number;
 
+  // Attack Speed
+  attackSpeedPercent?: number; // percentage increase (e.g., 63 for 63%)
+  attackSpeedTime?: number; // actual attack interval in seconds (e.g., 0.36)
+
+  // Cooldown Speed
+  cooldownSpeed?: number; // cooldown speed stat (e.g., 40.9)
+  cooldownSpeedPercent?: number; // actual cooldown reduction percentage (e.g., 29.0)
+
   // PvE
   speciesDamageBoost?: number;
   pveDamageMultiplier?: number;

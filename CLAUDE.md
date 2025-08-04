@@ -23,12 +23,6 @@ npm run test
 
 # Run tests for a specific file
 npm run test src/calculations.test.ts
-
-# Tauri desktop app development
-npm run tauri:dev
-
-# Build Tauri desktop app
-npm run tauri:build
 ```
 
 ## Architecture
@@ -39,7 +33,6 @@ npm run tauri:build
 - **Styling**: Tailwind CSS + shadcn/ui components
 - **Charts**: Recharts
 - **UI Components**: Radix UI primitives
-- **Desktop App**: Tauri (optional)
 - **Testing**: Vitest + React Testing Library
 
 ### Core Files

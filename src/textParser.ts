@@ -77,6 +77,14 @@ export function parseTextToBuild(
     skillDamageBoost: parseStatValue(stats["Skill Damage Boost"]),
     weakenChance: parseStatValue(stats["Weaken Chance"]),
 
+    // Attack Speed
+    attackSpeedPercent: stats["Attack Speed Percent"] ? parseStatValue(stats["Attack Speed Percent"]) : undefined,
+    attackSpeedTime: stats["Attack Speed Time"] ? parseFloat(stats["Attack Speed Time"].replace('s', '')) : undefined,
+
+    // Cooldown Speed
+    cooldownSpeed: parseStatValue(stats["Cooldown Speed"]),
+    cooldownSpeedPercent: stats["Cooldown Speed Percent"] ? parseStatValue(stats["Cooldown Speed Percent"]) : undefined,
+
     // Off-hand chance
     offhandChance:
       (parsePercentage(stats["Off-Hand Weapon Attack Chance"]) || 0) / 100,
@@ -273,8 +281,11 @@ function parseTokens(tokens: Token[], lines: string[]): any {
         if (statName === "Attack Speed") {
           if (value.endsWith("s")) {
             stats["Attack Speed Time"] = value;
+          } else if (value.endsWith("%")) {
+            stats["Attack Speed Percent"] = value;
           } else {
-            stats[statName] = value;
+            // If no suffix, assume it's a percentage
+            stats["Attack Speed Percent"] = value;
           }
         } else {
           stats[statName] = value;
@@ -307,8 +318,11 @@ function parseTokens(tokens: Token[], lines: string[]): any {
         if (statName === "Attack Speed") {
           if (value.endsWith("s")) {
             stats["Attack Speed Time"] = value;
+          } else if (value.endsWith("%")) {
+            stats["Attack Speed Percent"] = value;
           } else {
-            stats[statName] = value;
+            // If no suffix, assume it's a percentage
+            stats["Attack Speed Percent"] = value;
           }
         } else {
           stats[statName] = value;

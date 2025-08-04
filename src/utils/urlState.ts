@@ -65,6 +65,14 @@ function minifyBuild(build: Build): any {
   if (build.shieldBlockPenetrationChance)
     minified.sbp = build.shieldBlockPenetrationChance;
 
+  // Attack Speed
+  if (build.attackSpeedPercent) minified.asp = build.attackSpeedPercent;
+  if (build.attackSpeedTime) minified.ast = build.attackSpeedTime;
+  
+  // Cooldown Speed
+  if (build.cooldownSpeed) minified.cs = build.cooldownSpeed;
+  if (build.cooldownSpeedPercent) minified.csp = build.cooldownSpeedPercent;
+
   // Positional stats
   if (build.backHitChance) minified.bhc = build.backHitChance;
   if (build.sideHitChance) minified.shc = build.sideHitChance;
@@ -100,6 +108,10 @@ function expandBuild(minified: any): Build {
     speciesDamageBoost: minified.spdb,
     pveDamageMultiplier: minified.pve,
     shieldBlockPenetrationChance: minified.sbp,
+    attackSpeedPercent: minified.asp,
+    attackSpeedTime: minified.ast,
+    cooldownSpeed: minified.cs,
+    cooldownSpeedPercent: minified.csp,
     backHitChance: minified.bhc,
     sideHitChance: minified.shc,
     backHeavyAttackChance: minified.bhac,

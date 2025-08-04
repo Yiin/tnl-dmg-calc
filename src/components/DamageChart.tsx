@@ -11,14 +11,14 @@ import {
   ReferenceLine,
 } from "recharts";
 import { Build, Enemy, StatKey, ChartPoint } from "../types";
-import { calculateDamage } from "../calculations";
+import { calculateDamage, calculateDPS } from "../calculations";
 
 interface DamageChartProps {
   builds: Build[];
   enemy: Enemy;
   xAxisStat: StatKey;
   xAxisRange: { min: number; max: number; step: number };
-  yMetric: "expectedDamage" | "finalDamage" | "critChance" | "hitChance";
+  yMetric: "expectedDamage" | "finalDamage" | "critChance" | "hitChance" | "dps";
   combatType: "melee" | "ranged" | "magic";
   attackDirection: "front" | "side" | "back";
   isPvP?: boolean;
@@ -27,6 +27,9 @@ interface DamageChartProps {
   hitsPerCast?: number;
   weakenSkillPotency?: number;
   weakenSkillFlatAdd?: number;
+  cooldownTime?: number;
+  castTime?: number;
+  skillCooldownSpecialization?: number;
 }
 
 const COLORS = [
@@ -52,6 +55,9 @@ export function DamageChart({
   hitsPerCast = 1,
   weakenSkillPotency = 0,
   weakenSkillFlatAdd = 0,
+  cooldownTime = 10,
+  castTime = 1,
+  skillCooldownSpecialization = 0,
 }: DamageChartProps) {
   console.log("Render DamageChart");
   // Determine if the stat belongs to build or enemy based on the stat name
@@ -71,6 +77,10 @@ export function DamageChart({
       "magicHit",
       "skillDamageBoost",
       "bonusDamage",
+      "attackSpeedTime",
+      "attackSpeedPercent",
+      "cooldownSpeed",
+      "cooldownSpeedPercent",
     ];
     return buildStats.includes(xAxisStat);
   }, [xAxisStat]);
@@ -109,19 +119,38 @@ export function DamageChart({
           modifiedEnemy = { ...modifiedEnemy, [xAxisStat]: x };
         }
 
-        const breakdown = calculateDamage(
-          modifiedBuild,
-          modifiedEnemy,
-          combatType,
-          attackDirection,
-          isPvP,
-          skillPotency,
-          skillFlatAdd,
-          hitsPerCast,
-          weakenSkillPotency,
-          weakenSkillFlatAdd
-        );
-        point[`build${index}`] = breakdown[yMetric];
+        if (yMetric === "dps") {
+          const dps = calculateDPS(
+            modifiedBuild,
+            modifiedEnemy,
+            combatType,
+            attackDirection,
+            cooldownTime,
+            castTime,
+            isPvP,
+            skillPotency,
+            skillFlatAdd,
+            hitsPerCast,
+            weakenSkillPotency,
+            weakenSkillFlatAdd,
+            skillCooldownSpecialization
+          );
+          point[`build${index}`] = dps;
+        } else {
+          const breakdown = calculateDamage(
+            modifiedBuild,
+            modifiedEnemy,
+            combatType,
+            attackDirection,
+            isPvP,
+            skillPotency,
+            skillFlatAdd,
+            hitsPerCast,
+            weakenSkillPotency,
+            weakenSkillFlatAdd
+          );
+          point[`build${index}`] = breakdown[yMetric];
+        }
       });
 
       data.push(point);
@@ -141,6 +170,11 @@ export function DamageChart({
     skillFlatAdd,
     hitsPerCast,
     statBelongsToBuild,
+    cooldownTime,
+    castTime,
+    skillCooldownSpecialization,
+    weakenSkillPotency,
+    weakenSkillFlatAdd,
   ]);
 
   const formatYAxis = useCallback(

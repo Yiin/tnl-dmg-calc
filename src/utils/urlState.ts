@@ -228,6 +228,12 @@ export function serializeState(state: Partial<AppState>): string {
       sc.wp = state.skillConfig.weakenSkillPotency;
     if (state.skillConfig.weakenSkillFlatAdd !== 0)
       sc.wf = state.skillConfig.weakenSkillFlatAdd;
+    if (state.skillConfig.cooldownTime !== 10)
+      sc.cd = state.skillConfig.cooldownTime;
+    if (state.skillConfig.castTime !== 1)
+      sc.ct = state.skillConfig.castTime;
+    if (state.skillConfig.skillCooldownSpecialization !== 0)
+      sc.cds = state.skillConfig.skillCooldownSpecialization;
     if (Object.keys(sc).length > 0) minified.s = sc;
   }
 
@@ -282,6 +288,9 @@ export function deserializeState(hash: string): Partial<AppState> | null {
         hitsPerCast: minified.s.h || 1,
         weakenSkillPotency: minified.s.wp || 0,
         weakenSkillFlatAdd: minified.s.wf || 0,
+        cooldownTime: minified.s.cd || 10,
+        castTime: minified.s.ct || 1,
+        skillCooldownSpecialization: minified.s.cds || 0,
       };
     }
 

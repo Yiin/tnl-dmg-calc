@@ -24,9 +24,9 @@ interface ChartControlsProps {
     max: number;
     step: number;
   }) => void;
-  yMetric: "expectedDamage" | "finalDamage" | "critChance" | "hitChance";
+  yMetric: "expectedDamage" | "finalDamage" | "critChance" | "hitChance" | "dps";
   onYMetricChange: (
-    metric: "expectedDamage" | "finalDamage" | "critChance" | "hitChance"
+    metric: "expectedDamage" | "finalDamage" | "critChance" | "hitChance" | "dps"
   ) => void;
   combatType: "melee" | "ranged" | "magic";
   onCombatTypeChange: (type: "melee" | "ranged" | "magic") => void;
@@ -60,6 +60,12 @@ const ATTACKER_STATS: { value: StatKey; label: string }[] = [
 
   // Skill Stats
   { value: "skillDamageBoost", label: "Skill Damage Boost" },
+  
+  // Speed Stats
+  { value: "attackSpeedTime", label: "Attack Speed (s)" },
+  { value: "attackSpeedPercent", label: "Attack Speed %" },
+  { value: "cooldownSpeed", label: "Cooldown Speed" },
+  { value: "cooldownSpeedPercent", label: "CDR %" },
 ];
 
 const ENEMY_STATS: { value: StatKey; label: string }[] = [
@@ -91,6 +97,7 @@ const ENEMY_STATS: { value: StatKey; label: string }[] = [
 const Y_METRIC_OPTIONS = [
   { value: "expectedDamage" as const, label: "Expected Final Damage" },
   { value: "finalDamage" as const, label: "Single Hit Damage" },
+  { value: "dps" as const, label: "DPS (Damage per Second)" },
   { value: "critChance" as const, label: "Crit Chance" },
   { value: "hitChance" as const, label: "Hit Chance" },
 ];

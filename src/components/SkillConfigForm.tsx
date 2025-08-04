@@ -8,6 +8,9 @@ interface SkillConfig {
   hitsPerCast: number;
   weakenSkillPotency: number;
   weakenSkillFlatAdd: number;
+  cooldownTime: number;
+  castTime: number;
+  skillCooldownSpecialization: number;
 }
 
 interface SkillConfigFormProps {
@@ -103,6 +106,59 @@ export function SkillConfigForm({ config, onChange }: SkillConfigFormProps) {
                 value={config.weakenSkillFlatAdd}
                 onChange={(e) =>
                   handleInputChange("weakenSkillFlatAdd", e.target.value)
+                }
+                className="h-8 text-xs"
+                placeholder="0"
+              />
+            </div>
+          </div>
+        </div>
+        <div className="mt-4 pt-4 border-t">
+          <h4 className="text-sm font-medium mb-3">Skill Timing</h4>
+          <div className="grid grid-cols-3 gap-3">
+            <div className="space-y-1">
+              <Label htmlFor="cooldownTime" className="text-xs">
+                Cooldown Time (s)
+              </Label>
+              <Input
+                id="cooldownTime"
+                type="number"
+                step="0.1"
+                value={config.cooldownTime}
+                onChange={(e) =>
+                  handleInputChange("cooldownTime", e.target.value)
+                }
+                className="h-8 text-xs"
+                placeholder="10"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="castTime" className="text-xs">
+                Cast Time (s)
+              </Label>
+              <Input
+                id="castTime"
+                type="number"
+                step="0.1"
+                value={config.castTime}
+                onChange={(e) =>
+                  handleInputChange("castTime", e.target.value)
+                }
+                className="h-8 text-xs"
+                placeholder="1"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="skillCooldownSpecialization" className="text-xs">
+                CD Specialization (s)
+              </Label>
+              <Input
+                id="skillCooldownSpecialization"
+                type="number"
+                step="0.1"
+                value={config.skillCooldownSpecialization}
+                onChange={(e) =>
+                  handleInputChange("skillCooldownSpecialization", e.target.value)
                 }
                 className="h-8 text-xs"
                 placeholder="0"

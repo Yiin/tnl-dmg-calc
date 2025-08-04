@@ -19,6 +19,9 @@ interface SkillConfig {
   hitsPerCast: number;
   weakenSkillPotency: number;
   weakenSkillFlatAdd: number;
+  cooldownTime: number;
+  castTime: number;
+  skillCooldownSpecialization: number;
 }
 
 const defaultBuild: Build = {
@@ -45,6 +48,9 @@ const defaultSkillConfig: SkillConfig = {
   hitsPerCast: 1,
   weakenSkillPotency: 0,
   weakenSkillFlatAdd: 0,
+  cooldownTime: 10,
+  castTime: 1,
+  skillCooldownSpecialization: 0,
 };
 
 const defaultEnemy: Enemy = {
@@ -220,7 +226,8 @@ function App() {
           | "expectedDamage"
           | "finalDamage"
           | "critChance"
-          | "hitChance",
+          | "hitChance"
+          | "dps",
         combatType: loadFromStorage(STORAGE_KEYS.combatType, "melee") as
           | "melee"
           | "ranged"
@@ -248,7 +255,7 @@ function App() {
   const [xAxisStat, setXAxisStat] = useState<StatKey>(initialState.xAxisStat);
   const [xAxisRange, setXAxisRange] = useState(initialState.xAxisRange);
   const [yMetric, setYMetric] = useState<
-    "expectedDamage" | "finalDamage" | "critChance" | "hitChance"
+    "expectedDamage" | "finalDamage" | "critChance" | "hitChance" | "dps"
   >(initialState.yMetric);
   const [combatType, setCombatType] = useState<"melee" | "ranged" | "magic">(
     initialState.combatType
@@ -624,6 +631,9 @@ function App() {
               hitsPerCast={skillConfig.hitsPerCast}
               weakenSkillPotency={skillConfig.weakenSkillPotency}
               weakenSkillFlatAdd={skillConfig.weakenSkillFlatAdd}
+              cooldownTime={skillConfig.cooldownTime}
+              castTime={skillConfig.castTime}
+              skillCooldownSpecialization={skillConfig.skillCooldownSpecialization}
             />
           </div>
 
@@ -639,6 +649,9 @@ function App() {
               hitsPerCast={skillConfig.hitsPerCast}
               weakenSkillPotency={skillConfig.weakenSkillPotency}
               weakenSkillFlatAdd={skillConfig.weakenSkillFlatAdd}
+              cooldownTime={skillConfig.cooldownTime}
+              castTime={skillConfig.castTime}
+              skillCooldownSpecialization={skillConfig.skillCooldownSpecialization}
             />
           )}
         </div>

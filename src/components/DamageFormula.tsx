@@ -80,10 +80,16 @@ export function DamageFormula({
     glanceChance = diff / (diff + 1000);
   }
 
-  const hitChance = totalHit / (totalHit + stats.evasion + 1000);
-  const heavyChanceVal = totalHeavy / (totalHeavy + stats.heavyEvasion + 1000);
+  const hitDiff = Math.max(0, stats.evasion - totalHit);
+  const hitChance = 1 - hitDiff / (hitDiff + 1000);
+  const heavyDiff = Math.max(0, totalHeavy - stats.heavyEvasion);
+  const heavyChanceVal = heavyDiff / (heavyDiff + 1000);
   const defenseReduction = 1 - stats.defense / (stats.defense + 2500);
-  const skillDamageBoost = 1 + (build.skillDamageBoost || 0) / 100;
+  // Calculate skill damage boost using the standard formula
+  const skillBoostDiff = (build.skillDamageBoost || 0) - (enemy.skillDamageResistance || 0);
+  const skillDamageBoost = skillBoostDiff > 0 
+    ? 1 + skillBoostDiff / (skillBoostDiff + 1000)
+    : 1 - Math.abs(skillBoostDiff) / (Math.abs(skillBoostDiff) + 1000);
 
   // Calculate weaken chance
   const weakenDiff = Math.max(
@@ -101,10 +107,19 @@ export function DamageFormula({
   // Calculate expected base damage with crit damage
   const critDamageBonus =
     ((build.criticalDamage || 0) - (enemy.criticalDamageResistance || 0)) / 100;
-  const expectedBaseDamage =
+  const mainHandBaseDamage =
     critChance * build.maxDMG * (1 + critDamageBonus) +
     glanceChance * build.minDMG +
     (1 - critChance - glanceChance) * parseFloat(avgWeaponDmg);
+  
+  // Off-hand damage (included in base damage before multipliers)
+  const offhandBaseDamage = build.offhandChance && build.offhandChance > 0
+    ? (critChance * (build.offhandMaxDMG || 0) * (1 + critDamageBonus) +
+       glanceChance * (build.offhandMinDMG || 0) +
+       (1 - critChance - glanceChance) * ((build.offhandMinDMG || 0) + (build.offhandMaxDMG || 0)) / 2) * build.offhandChance
+    : 0;
+  
+  const expectedBaseDamage = mainHandBaseDamage + offhandBaseDamage;
 
   // Calculate final damage values
   const expectedHeavyMultiplier = heavyChanceVal * 2 + (1 - heavyChanceVal) * 1;
@@ -113,8 +128,15 @@ export function DamageFormula({
   // Core skill damage with weaken
   const coreSkillDamage = effectiveSkillPotency * expectedBaseDamage + effectiveSkillFlatAdd;
   
+  // Calculate block reduction
+  const blockChance = Math.max(0, (enemy.shieldBlockChance || 0) - (build.shieldBlockPenetrationChance || 0));
+  const blockMultiplier = 1 - (blockChance * 0.4); // 40% damage reduction on block
+  
+  // Calculate species damage boost (PvE only)
+  const speciesMultiplier = isPvP ? 1 : 1 + (build.speciesDamageBoost || 0) / ((build.speciesDamageBoost || 0) + 1000);
+  
   // All multipliers combined
-  const allMultipliers = defenseReduction * skillDamageBoost * pvpMultiplier;
+  const allMultipliers = defenseReduction * blockMultiplier * skillDamageBoost * speciesMultiplier * pvpMultiplier;
   
   // Final damage before bonus/reduction
   const damageBeforeBonus = coreSkillDamage * allMultipliers * expectedHeavyMultiplier;
@@ -124,13 +146,6 @@ export function DamageFormula({
   
   // Expected damage per cast
   const expectedDamage = damage * hitChance * hitsPerCast;
-  
-  // Off-hand calculations
-  const offhandAvgDamage = build.offhandChance && build.offhandChance > 0
-    ? ((build.offhandMinDMG || 0) + (build.offhandMaxDMG || 0)) / 2 * build.offhandChance
-    : 0;
-  const offhandFinalDamage = offhandAvgDamage * allMultipliers * expectedHeavyMultiplier;
-  const totalExpectedDamage = expectedDamage + offhandFinalDamage * hitChance * hitsPerCast;
 
   const formula = `// Throne & Liberty Damage Formula
 // ${combatType} combat, ${attackDirection} attack, ${isPvP ? "PvP" : "PvE"}
@@ -139,8 +154,7 @@ export function DamageFormula({
 // SUMMARY
 //========================================
 Damage per Hit: ${damage.toFixed(1)}
-Expected Damage per Cast: ${expectedDamage.toFixed(1)}${build.offhandChance && build.offhandChance > 0 ? `
-Total with Off-hand: ${totalExpectedDamage.toFixed(1)}` : ''}
+Expected Damage per Cast: ${expectedDamage.toFixed(1)}
 
 Key Chances:
 - Hit Chance: ${(hitChance * 100).toFixed(1)}%
@@ -161,13 +175,27 @@ CritDamageBonus = PlayerCritDamage - EnemyCritResistance
                 = ${build.criticalDamage || 0}% - ${enemy.criticalDamageResistance || 0}% = ${(build.criticalDamage || 0) - (enemy.criticalDamageResistance || 0)}%
 
 // Expected damage accounting for crit/glance/normal hits
-ExpectedBaseDamage = (CritChance × MaxDamage × CritMultiplier) +
+MainHandBaseDamage = (CritChance × MaxDamage × CritMultiplier) +
                     (GlanceChance × MinDamage) + 
                     (NormalChance × AvgDamage)
-                  = (${critChance.toFixed(3)} × ${build.maxDMG} × ${(1 + critDamageBonus).toFixed(2)}) +
-                    (${glanceChance.toFixed(3)} × ${build.minDMG}) + 
-                    (${(1 - critChance - glanceChance).toFixed(3)} × ${avgWeaponDmg})
-                  = ${expectedBaseDamage.toFixed(1)}
+                   = (${critChance.toFixed(3)} × ${build.maxDMG} × ${(1 + critDamageBonus).toFixed(2)}) +
+                     (${glanceChance.toFixed(3)} × ${build.minDMG}) + 
+                     (${(1 - critChance - glanceChance).toFixed(3)} × ${avgWeaponDmg})
+                   = ${mainHandBaseDamage.toFixed(1)}${build.offhandChance && build.offhandChance > 0 ? `
+
+// Off-hand damage calculation (uses same crit/glance logic)
+OffhandBaseDamage = [(CritChance × OffhandMaxDamage × CritMultiplier) +
+                     (GlanceChance × OffhandMinDamage) + 
+                     (NormalChance × OffhandAvgDamage)] × OffhandChance
+                  = [(${critChance.toFixed(3)} × ${build.offhandMaxDMG || 0} × ${(1 + critDamageBonus).toFixed(2)}) +
+                     (${glanceChance.toFixed(3)} × ${build.offhandMinDMG || 0}) + 
+                     (${(1 - critChance - glanceChance).toFixed(3)} × ${((build.offhandMinDMG || 0) + (build.offhandMaxDMG || 0)) / 2})] × ${build.offhandChance}
+                  = ${offhandBaseDamage.toFixed(1)}` : ''}
+
+// Total expected base damage (main hand + off-hand)
+ExpectedBaseDamage = MainHandBaseDamage${build.offhandChance && build.offhandChance > 0 ? ' + OffhandBaseDamage' : ''}
+                   = ${mainHandBaseDamage.toFixed(1)}${build.offhandChance && build.offhandChance > 0 ? ` + ${offhandBaseDamage.toFixed(1)}` : ''}
+                   = ${expectedBaseDamage.toFixed(1)}
 
 //========================================
 // COMBAT CHANCES
@@ -187,14 +215,16 @@ GlanceChance = (Endurance - Crit) / ((Endurance - Crit) + 1000)
 }
 
 // Hit vs Evasion
-HitChance = Hit / (Hit + Evasion + 1000)
-          = ${totalHit}${hitMod > 0 ? ` [base:${stats.hit} + ${attackDirection}:${hitMod}]` : ""} / (${totalHit} + ${stats.evasion} + 1000)
-          = ${totalHit} / ${totalHit + stats.evasion + 1000} = ${hitChance.toFixed(3)}
+// Formula: HitChance = 1 - ((Evasion - Hit) / ((Evasion - Hit) + 1000))
+HitChance = 1 - (max(0, Evasion - Hit) / (max(0, Evasion - Hit) + 1000))
+          = 1 - (max(0, ${stats.evasion} - ${totalHit}${hitMod > 0 ? ` [base:${stats.hit} + ${attackDirection}:${hitMod}]` : ""}) / (max(0, ${stats.evasion} - ${totalHit}) + 1000))
+          = 1 - (${hitDiff} / ${hitDiff + 1000}) = ${hitChance.toFixed(3)}
 
 // Heavy Attack vs Heavy Evasion  
-HeavyChance = HeavyAttack / (HeavyAttack + HeavyEvasion + 1000)
-            = ${totalHeavy}${heavyMod > 0 ? ` [base:${stats.heavyAttack} + ${attackDirection}:${heavyMod}]` : ""} / (${totalHeavy} + ${stats.heavyEvasion} + 1000)
-            = ${totalHeavy} / ${totalHeavy + stats.heavyEvasion + 1000} = ${heavyChanceVal.toFixed(3)}
+// Formula: HeavyChance = max(0, HeavyAttack - HeavyEvasion) / (max(0, HeavyAttack - HeavyEvasion) + 1000)
+HeavyChance = (HeavyAttack - HeavyEvasion) / ((HeavyAttack - HeavyEvasion) + 1000)
+            = (${totalHeavy}${heavyMod > 0 ? ` [base:${stats.heavyAttack} + ${attackDirection}:${heavyMod}]` : ""} - ${stats.heavyEvasion}) / ((${totalHeavy} - ${stats.heavyEvasion}) + 1000)
+            = ${heavyDiff} / ${heavyDiff + 1000} = ${heavyChanceVal.toFixed(3)}
 
 // Heavy attacks deal 2x damage
 ExpectedHeavyMultiplier = (HeavyChance × 2) + ((1 - HeavyChance) × 1)
@@ -235,16 +265,35 @@ DefenseMultiplier = 1 - (EnemyDefense / (EnemyDefense + 2500))
                   = 1 - (${stats.defense} / (${stats.defense} + 2500))
                   = 1 - ${(stats.defense / (stats.defense + 2500)).toFixed(3)} = ${defenseReduction.toFixed(3)}
 
-// Skill damage boost increases all skill damage
-SkillDamageMultiplier = 1 + (SkillDamageBoost / 100)
-                      = 1 + (${build.skillDamageBoost || 0} / 100) = ${skillDamageBoost.toFixed(3)}
+// Skill damage boost vs skill damage resistance
+${skillBoostDiff > 0 
+  ? `// Skill Boost > Skill Resist: Damage increase
+SkillDamageMultiplier = 1 + ((SkillBoost - SkillResist) / ((SkillBoost - SkillResist) + 1000))
+                      = 1 + ((${build.skillDamageBoost || 0} - ${enemy.skillDamageResistance || 0}) / ((${build.skillDamageBoost || 0} - ${enemy.skillDamageResistance || 0}) + 1000))
+                      = 1 + (${skillBoostDiff} / ${skillBoostDiff + 1000}) = ${skillDamageBoost.toFixed(3)}`
+  : `// Skill Boost ≤ Skill Resist: Damage decrease
+SkillDamageMultiplier = 1 - ((SkillResist - SkillBoost) / ((SkillResist - SkillBoost) + 1000))
+                      = 1 - ((${enemy.skillDamageResistance || 0} - ${build.skillDamageBoost || 0}) / ((${enemy.skillDamageResistance || 0} - ${build.skillDamageBoost || 0}) + 1000))
+                      = 1 - (${Math.abs(skillBoostDiff)} / ${Math.abs(skillBoostDiff) + 1000}) = ${skillDamageBoost.toFixed(3)}`}
 
-// PvP/PvE damage modifier
-${isPvP ? `PvPMultiplier = 1 - 0.1 = ${pvpMultiplier.toFixed(1)} (10% damage reduction in PvP)` : `PvEMultiplier = ${pvpMultiplier.toFixed(1)} (no reduction in PvE)`}
+// Shield Block Chance (reduces damage by 40% when blocked)
+BlockChance = max(0, EnemyBlockChance - PlayerBlockPenetration)
+            = max(0, ${enemy.shieldBlockChance || 0} - ${build.shieldBlockPenetrationChance || 0}) = ${blockChance.toFixed(3)}
+BlockMultiplier = 1 - (BlockChance × 0.4)
+                = 1 - (${blockChance.toFixed(3)} × 0.4) = ${blockMultiplier.toFixed(3)}
+
+${!isPvP ? `// Species Damage Boost (PvE only)
+SpeciesMultiplier = 1 + (SpeciesDamageBoost / (SpeciesDamageBoost + 1000))
+                  = 1 + (${build.speciesDamageBoost || 0} / (${build.speciesDamageBoost || 0} + 1000))
+                  = 1 + ${((build.speciesDamageBoost || 0) / ((build.speciesDamageBoost || 0) + 1000)).toFixed(3)} = ${speciesMultiplier.toFixed(3)}
+
+` : ''}// PvP/PvE damage modifier
+${isPvP ? `PvPMultiplier = 1 - 0.1 = ${pvpMultiplier.toFixed(1)} (10% damage reduction in PvP)` : `PvEMultiplier = 1 + (PvEDamageBoost / 100)
+              = 1 + (${build.pveDamageMultiplier || 0} / 100) = ${(1 + (build.pveDamageMultiplier || 0) / 100).toFixed(3)}`}
 
 // Combined multipliers for efficiency
-AllMultipliers = DefenseMultiplier × SkillDamageMultiplier × ${isPvP ? 'PvPMultiplier' : 'PvEMultiplier'}
-               = ${defenseReduction.toFixed(3)} × ${skillDamageBoost.toFixed(3)} × ${pvpMultiplier.toFixed(1)}
+AllMultipliers = DefenseMultiplier × BlockMultiplier × SkillDamageMultiplier${!isPvP ? ' × SpeciesMultiplier' : ''} × ${isPvP ? 'PvPMultiplier' : 'PvEMultiplier'}
+               = ${defenseReduction.toFixed(3)} × ${blockMultiplier.toFixed(3)} × ${skillDamageBoost.toFixed(3)}${!isPvP ? ` × ${speciesMultiplier.toFixed(3)}` : ''} × ${pvpMultiplier.toFixed(1)}
                = ${allMultipliers.toFixed(3)}
 
 // Flat modifiers (applied after multipliers)
@@ -267,23 +316,7 @@ Damage = DamageBeforeBonus + BonusDamage - DamageReduction
 // Step 3: Apply hit chance and hits per cast
 ExpectedDamage = Damage × HitChance × HitsPerCast
                = ${damage.toFixed(1)} × ${hitChance.toFixed(3)} × ${hitsPerCast}
-               = ${expectedDamage.toFixed(1)}
-${build.offhandChance && build.offhandChance > 0 ? `
-//========================================
-// OFF-HAND DAMAGE
-//========================================
-OffhandAvgDamage = (${build.offhandMinDMG} + ${build.offhandMaxDMG}) / 2 × ${build.offhandChance}
-                 = ${((build.offhandMinDMG || 0) + (build.offhandMaxDMG || 0)) / 2} × ${build.offhandChance}
-                 = ${offhandAvgDamage.toFixed(1)}
-
-OffhandFinalDamage = OffhandAvgDamage × AllMultipliers × ExpectedHeavyMultiplier
-                   = ${offhandAvgDamage.toFixed(1)} × ${allMultipliers.toFixed(3)} × ${expectedHeavyMultiplier.toFixed(3)}
-                   = ${offhandFinalDamage.toFixed(1)}
-
-// Total damage including off-hand
-TotalExpectedDamage = ExpectedDamage + (OffhandFinalDamage × HitChance × HitsPerCast)
-                    = ${expectedDamage.toFixed(1)} + (${offhandFinalDamage.toFixed(1)} × ${hitChance.toFixed(3)} × ${hitsPerCast})
-                    = ${totalExpectedDamage.toFixed(1)}` : ""}`;
+               = ${expectedDamage.toFixed(1)}`;
 
   // Custom theme based on the original colors
   const customStyle = {

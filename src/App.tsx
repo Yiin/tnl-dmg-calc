@@ -202,7 +202,7 @@ function App() {
               | "side"
               | "back",
             isPvP: urlState.isPvP !== undefined ? urlState.isPvP : true,
-            skillConfig: urlState.skillConfig || defaultSkillConfig,
+            skillConfig: urlState.skillConfig ? { ...defaultSkillConfig, ...urlState.skillConfig } : defaultSkillConfig,
             activeBuildTab: urlState.activeBuildTab || "0",
             activeEnemyTab: urlState.activeEnemyTab || "0",
           };
@@ -237,10 +237,10 @@ function App() {
           "front"
         ) as "front" | "side" | "back",
         isPvP: loadFromStorage(STORAGE_KEYS.isPvP, true),
-        skillConfig: loadFromStorage(
-          STORAGE_KEYS.skillConfig,
-          defaultSkillConfig
-        ),
+        skillConfig: {
+          ...defaultSkillConfig,
+          ...loadFromStorage(STORAGE_KEYS.skillConfig, {})
+        },
         activeBuildTab: loadFromStorage(STORAGE_KEYS.activeBuildTab, "0"),
         activeEnemyTab: loadFromStorage(STORAGE_KEYS.activeEnemyTab, "0"),
       };

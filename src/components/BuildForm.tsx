@@ -205,12 +205,10 @@ export function BuildForm({ build, onChange, onRemove }: BuildFormProps) {
                 id="cooldownSpeedPercent"
                 type="number"
                 step="0.1"
-                value={build.cooldownSpeedPercent || 0}
-                onChange={(e) =>
-                  handleInputChange("cooldownSpeedPercent", e.target.value)
-                }
+                value={build.cooldownSpeed ? ((build.cooldownSpeed / (build.cooldownSpeed + 100)) * 100).toFixed(1) : 0}
                 className="h-8 text-xs"
                 placeholder="29.0"
+                readOnly
               />
             </div>
           </div>

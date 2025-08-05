@@ -154,9 +154,13 @@ export function DamageFormula({
   const expectedDamage = damage * hitChance * hitsPerCast;
 
   // Calculate actual cast time with attack speed
-  const actualCastTime = build.attackSpeedTime 
-    ? castTime * (build.attackSpeedTime / 1.0) 
-    : castTime;
+  let actualCastTime = castTime;
+  if (build.attackSpeedTime) {
+    actualCastTime = castTime * (build.attackSpeedTime / 1.0);
+  } else if (build.attackSpeedPercent && build.attackSpeedPercent > 0) {
+    const speedMultiplier = 1 / (1 + build.attackSpeedPercent / 100);
+    actualCastTime = castTime * speedMultiplier;
+  }
   
   // Calculate actual cooldown with cooldown speed
   const adjustedCooldown = cooldownTime - skillCooldownSpecialization;
@@ -349,14 +353,19 @@ ExpectedDamage = Damage × HitChance × HitsPerCast
 //========================================
 // ATTACK SPEED & COOLDOWN CALCULATIONS
 //========================================
-${build.attackSpeedTime ? `// Attack Speed reduces cast time proportionally
+${build.attackSpeedTime || build.attackSpeedPercent ? `// Attack Speed reduces cast time
+${build.attackSpeedTime ? `// Using actual attack speed time
 BaseAttackSpeed = 1.0s (reference speed)
 PlayerAttackSpeed = ${build.attackSpeedTime}s${build.attackSpeedPercent ? ` (${build.attackSpeedPercent}% faster)` : ''}
 SpeedMultiplier = PlayerAttackSpeed / BaseAttackSpeed
-                = ${build.attackSpeedTime} / 1.0 = ${(build.attackSpeedTime / 1.0).toFixed(3)}
+                = ${build.attackSpeedTime} / 1.0 = ${(build.attackSpeedTime / 1.0).toFixed(3)}` : `// Using attack speed percentage
+AttackSpeedPercent = ${build.attackSpeedPercent}% (${100 + (build.attackSpeedPercent || 0)}% of normal speed)
+SpeedMultiplier = 1 / (1 + AttackSpeedPercent / 100)
+                = 1 / (1 + ${build.attackSpeedPercent} / 100)
+                = 1 / ${(1 + (build.attackSpeedPercent || 0) / 100).toFixed(3)} = ${(1 / (1 + (build.attackSpeedPercent || 0) / 100)).toFixed(3)}`}
 
 ActualCastTime = BaseCastTime × SpeedMultiplier
-               = ${castTime}s × ${(build.attackSpeedTime / 1.0).toFixed(3)}
+               = ${castTime}s × ${build.attackSpeedTime ? (build.attackSpeedTime / 1.0).toFixed(3) : (1 / (1 + (build.attackSpeedPercent || 0) / 100)).toFixed(3)}
                = ${actualCastTime.toFixed(2)}s
 ` : '// No attack speed modifier - using base cast time\n'}
 ${build.cooldownSpeed ? `// Cooldown Speed reduces cooldown with diminishing returns

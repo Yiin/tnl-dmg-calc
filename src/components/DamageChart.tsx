@@ -80,7 +80,6 @@ export function DamageChart({
       "attackSpeedTime",
       "attackSpeedPercent",
       "cooldownSpeed",
-      "cooldownSpeedPercent",
     ];
     return buildStats.includes(xAxisStat);
   }, [xAxisStat]);

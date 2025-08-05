@@ -83,7 +83,6 @@ export function parseTextToBuild(
 
     // Cooldown Speed
     cooldownSpeed: parseStatValue(stats["Cooldown Speed"]),
-    cooldownSpeedPercent: stats["Cooldown Speed Percent"] ? parseStatValue(stats["Cooldown Speed Percent"]) : undefined,
 
     // Off-hand chance
     offhandChance:

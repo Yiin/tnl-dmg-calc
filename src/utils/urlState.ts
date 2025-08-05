@@ -74,7 +74,6 @@ function minifyBuild(build: Build): any {
   
   // Cooldown Speed
   if (build.cooldownSpeed) minified.cs = build.cooldownSpeed;
-  if (build.cooldownSpeedPercent) minified.csp = build.cooldownSpeedPercent;
 
   // Positional stats
   if (build.backHitChance) minified.bhc = build.backHitChance;
@@ -114,7 +113,6 @@ function expandBuild(minified: any): Build {
     attackSpeedPercent: minified.asp,
     attackSpeedTime: minified.ast,
     cooldownSpeed: minified.cs,
-    cooldownSpeedPercent: minified.csp,
     backHitChance: minified.bhc,
     sideHitChance: minified.shc,
     backHeavyAttackChance: minified.bhac,

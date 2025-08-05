@@ -65,7 +65,6 @@ const ATTACKER_STATS: { value: StatKey; label: string }[] = [
   { value: "attackSpeedTime", label: "Attack Speed (s)" },
   { value: "attackSpeedPercent", label: "Attack Speed %" },
   { value: "cooldownSpeed", label: "Cooldown Speed" },
-  { value: "cooldownSpeedPercent", label: "CDR %" },
 ];
 
 const ENEMY_STATS: { value: StatKey; label: string }[] = [

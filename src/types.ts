@@ -42,7 +42,6 @@ export interface Build {
 
   // Cooldown Speed
   cooldownSpeed?: number; // cooldown speed stat (e.g., 40.9)
-  cooldownSpeedPercent?: number; // actual cooldown reduction percentage (e.g., 29.0)
 
   // PvE
   speciesDamageBoost?: number;

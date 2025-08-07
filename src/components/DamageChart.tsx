@@ -30,6 +30,8 @@ interface DamageChartProps {
   cooldownTime?: number;
   castTime?: number;
   skillCooldownSpecialization?: number;
+  useCDR?: boolean;
+  useAttackSpeed?: boolean;
 }
 
 const COLORS = [
@@ -58,6 +60,8 @@ export function DamageChart({
   cooldownTime = 10,
   castTime = 1,
   skillCooldownSpecialization = 0,
+  useCDR = true,
+  useAttackSpeed = true,
 }: DamageChartProps) {
   console.log("Render DamageChart");
   // Determine if the stat belongs to build or enemy based on the stat name
@@ -132,7 +136,9 @@ export function DamageChart({
             hitsPerCast,
             weakenSkillPotency,
             weakenSkillFlatAdd,
-            skillCooldownSpecialization
+            skillCooldownSpecialization,
+            useCDR,
+            useAttackSpeed
           );
           point[`build${index}`] = dps;
         } else {

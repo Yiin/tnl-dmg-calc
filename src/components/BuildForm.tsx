@@ -3,15 +3,28 @@ import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Button } from "./ui/button";
+import { Checkbox } from "./ui/checkbox";
 import { X } from "lucide-react";
 
 interface BuildFormProps {
   build: Build;
   onChange: (build: Build) => void;
   onRemove?: () => void;
+  useCDR?: boolean;
+  useAttackSpeed?: boolean;
+  onUseCDRChange?: (value: boolean) => void;
+  onUseAttackSpeedChange?: (value: boolean) => void;
 }
 
-export function BuildForm({ build, onChange, onRemove }: BuildFormProps) {
+export function BuildForm({ 
+  build, 
+  onChange, 
+  onRemove,
+  useCDR = true,
+  useAttackSpeed = true,
+  onUseCDRChange,
+  onUseAttackSpeedChange
+}: BuildFormProps) {
   function handleInputChange(field: keyof Build, value: string) {
     const numValue = parseFloat(value) || 0;
     onChange({ ...build, [field]: numValue });
@@ -138,9 +151,23 @@ export function BuildForm({ build, onChange, onRemove }: BuildFormProps) {
         </div>
 
         <div className="space-y-2">
-          <h4 className="text-sm font-medium text-muted-foreground">
-            Attack Speed
-          </h4>
+          <div className="flex items-center justify-between">
+            <h4 className="text-sm font-medium text-muted-foreground">
+              Attack Speed
+            </h4>
+            {onUseAttackSpeedChange && (
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="use-attack-speed"
+                  checked={useAttackSpeed}
+                  onCheckedChange={onUseAttackSpeedChange}
+                />
+                <Label htmlFor="use-attack-speed" className="text-xs font-normal">
+                  Apply to DPS
+                </Label>
+              </div>
+            )}
+          </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
               <Label htmlFor="attackSpeedPercent" className="text-xs">
@@ -177,9 +204,23 @@ export function BuildForm({ build, onChange, onRemove }: BuildFormProps) {
         </div>
 
         <div className="space-y-2">
-          <h4 className="text-sm font-medium text-muted-foreground">
-            Cooldown Speed
-          </h4>
+          <div className="flex items-center justify-between">
+            <h4 className="text-sm font-medium text-muted-foreground">
+              Cooldown Speed
+            </h4>
+            {onUseCDRChange && (
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="use-cdr"
+                  checked={useCDR}
+                  onCheckedChange={onUseCDRChange}
+                />
+                <Label htmlFor="use-cdr" className="text-xs font-normal">
+                  Apply to DPS
+                </Label>
+              </div>
+            )}
+          </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
               <Label htmlFor="cooldownSpeed" className="text-xs">

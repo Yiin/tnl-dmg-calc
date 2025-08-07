@@ -4,82 +4,78 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a **Throne & Liberty Damage Calculator** - an interactive web application that simulates damage calculations for the MMORPG Throne & Liberty. It allows players to compare builds, visualize damage output, and import builds from questlog.gg.
+**Throne & Liberty Damage Calculator** - Interactive web application for simulating damage calculations in the MMORPG Throne & Liberty. Enables build comparison, damage visualization, and questlog.gg imports.
+
+Live at: https://yiin.github.io/tnl-dmg-calc/
 
 ## Development Commands
 
 ```bash
-# Start development server (runs on localhost:3000)
+# Development server (localhost:5173 with Vite)
 npm run dev
 
-# Build for production
+# Production build
 npm run build
 
 # Preview production build
 npm run preview
 
-# Run tests
+# Run all tests
 npm run test
 
-# Run tests for a specific file
+# Run specific test file
 npm run test src/calculations.test.ts
 ```
 
 ## Architecture
 
 ### Tech Stack
-- **Frontend**: React 19 with TypeScript
-- **Build Tool**: Vite
-- **Styling**: Tailwind CSS + shadcn/ui components
-- **Charts**: Recharts
-- **UI Components**: Radix UI primitives
-- **Testing**: Vitest + React Testing Library
+- **React 19** with TypeScript (strict mode)
+- **Vite** build tool
+- **Tailwind CSS** + shadcn/ui components  
+- **Recharts** for data visualization
+- **Radix UI** primitives
+- **Vitest** + React Testing Library
 
-### Core Files
+### Core Modules
 
-- **`src/App.tsx`**: Main application component with state management, build/enemy tabs, and URL sharing
-- **`src/calculations.ts`**: Damage calculation engine implementing T&L's complex formulas (hit/evasion, crit/glance, heavy attacks, skill multipliers, defenses)
-- **`src/types.ts`**: TypeScript definitions for Build, Enemy, DamageBreakdown, and combat types (melee/ranged/magic)
-- **`src/components/`**: UI components including BuildForm, EnemyForm, DamageChart, ImportDialog
+1. **`src/calculations.ts`** - Damage calculation engine
+   - Implements T&L damage formulas (hit/evasion, crit/glance, heavy attacks)
+   - Handles skill multipliers, defense reduction, PvP modifiers
+   - Positional combat calculations (front/side/back)
+   - DPS calculations with attack speed and cooldown modifiers
 
-### Key Concepts
+2. **`src/types.ts`** - TypeScript interfaces
+   - `Build`: Player stats (damage, crit, hit, heavy attack, skills)
+   - `Enemy`: Target configuration (defense, evasion, endurance, resistances)
+   - `DamageBreakdown`: Calculation results with all damage components
+   - Combat type system (melee/ranged/magic)
 
-1. **Build System**: Player stats stored in `Build` interface with weapon damage, crit, hit, heavy attack chance, skill damage, and combat-specific stats
-2. **Enemy Configuration**: Target stats including defense, evasion, endurance, damage reduction, and resistances
-3. **Damage Calculation**: Multi-step process calculating hit chance, crit/glance outcomes, skill multipliers, defense reduction, and final damage with PvP modifiers
-4. **State Management**: React hooks with localStorage persistence and URL-based sharing via hash parameters
-5. **Import/Export**: Text parser for questlog.gg format using regex patterns to extract stats
+3. **`src/App.tsx`** - Main application
+   - State management with React hooks
+   - localStorage persistence for builds
+   - URL-based sharing via hash parameters
+   - Tab management for multiple builds
 
-### Important Implementation Details
+### Key Components
 
-- Path alias configured: `@/*` maps to `src/*`
-- TypeScript strict mode enabled
-- Base path for GitHub Pages: `/tnl-dmg-calc/`
-- Damage formulas based on research from u/Rabubu29
-- Supports positional combat (front/side/back attacks)
-- Auto-detects dominant combat type (melee/ranged/magic) for chart display
+- **`BuildForm.tsx`**: Player stat input with grouped sections
+- **`EnemyForm.tsx`**: Target configuration interface
+- **`DamageChart.tsx`**: Interactive damage visualization (original with DPS support)
+- **`DamageChartRefactored.tsx`**: Simplified chart without DPS calculations
+- **`ImportDialog.tsx`**: questlog.gg text parser with regex extraction
+- **`ChartControls.tsx`**: Chart configuration (axes, ranges, metrics)
 
-### Component Structure
+### Important Details
 
-```
-src/
-├── components/
-│   ├── ui/           # shadcn/ui components
-│   ├── BuildForm.tsx # Player stat input form
-│   ├── EnemyForm.tsx # Target configuration
-│   ├── DamageChart.tsx # Recharts visualization
-│   ├── ImportDialog.tsx # questlog.gg import
-│   └── ChartControls.tsx # Chart configuration
-├── lib/
-│   └── utils.ts      # Utility functions
-├── calculations.ts   # Core damage math
-├── types.ts         # TypeScript interfaces
-└── App.tsx          # Main application
-```
+- Path alias: `@/*` → `src/*`
+- Base path: `/tnl-dmg-calc/` (GitHub Pages)
+- Damage formulas source: [u/Rabubu29's research](https://www.reddit.com/r/throneandliberty/comments/1k2cgcp/)
+- Two chart implementations exist - original supports DPS, refactored is cleaner but lacks DPS
 
 ## Testing
 
-Tests use Vitest with React Testing Library. Focus areas:
-- Damage calculation accuracy in `calculations.test.ts`
+Tests focus on:
+- Damage calculation accuracy (`calculations.test.ts`)
 - Component behavior and user interactions
 - Import/export functionality

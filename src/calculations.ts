@@ -424,7 +424,9 @@ export function calculateDPS(
   hitsPerCast: number = 1,
   weakenSkillPotency: number = 0,
   weakenSkillFlatAdd: number = 0,
-  skillCooldownSpecialization: number = 0
+  skillCooldownSpecialization: number = 0,
+  useCDR: boolean = true,
+  useAttackSpeed: boolean = true
 ): number {
   const damage = calculateDamage(
     build,
@@ -440,10 +442,14 @@ export function calculateDPS(
   );
   
   // Calculate actual cast time based on attack speed
-  const actualCastTime = calculateActualCastTime(castTime, build.attackSpeedTime, build.attackSpeedPercent);
+  const actualCastTime = useAttackSpeed 
+    ? calculateActualCastTime(castTime, build.attackSpeedTime, build.attackSpeedPercent)
+    : castTime;
   
   // Calculate actual cooldown based on cooldown speed
-  const actualCooldown = calculateActualCooldown(cooldownTime, build.cooldownSpeed, skillCooldownSpecialization);
+  const actualCooldown = useCDR
+    ? calculateActualCooldown(cooldownTime, build.cooldownSpeed, skillCooldownSpecialization)
+    : cooldownTime - skillCooldownSpecialization;
   
   // The effective cooldown is the max of actual cooldown and actual cast time
   const effectiveCooldown = Math.max(actualCooldown, actualCastTime);

@@ -278,6 +278,10 @@ function App() {
   const [showEnemyImportDialog, setShowEnemyImportDialog] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [showShareNotification, setShowShareNotification] = useState(false);
+  
+  // New state for CDR and Attack Speed usage
+  const [useCDR, setUseCDR] = useState<boolean>(true);
+  const [useAttackSpeed, setUseAttackSpeed] = useState<boolean>(true);
 
   function addBuild() {
     const newBuild: Build = {
@@ -589,6 +593,10 @@ function App() {
                         updateBuild(index, updatedBuild)
                       }
                       onRemove={() => removeBuild(index)}
+                      useCDR={useCDR}
+                      useAttackSpeed={useAttackSpeed}
+                      onUseCDRChange={setUseCDR}
+                      onUseAttackSpeedChange={setUseAttackSpeed}
                     />
                   </TabsContent>
                 ))}
@@ -634,6 +642,8 @@ function App() {
               cooldownTime={skillConfig.cooldownTime}
               castTime={skillConfig.castTime}
               skillCooldownSpecialization={skillConfig.skillCooldownSpecialization}
+              useCDR={useCDR}
+              useAttackSpeed={useAttackSpeed}
             />
           </div>
 

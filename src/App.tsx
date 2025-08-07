@@ -1,17 +1,19 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, lazy, Suspense } from "react";
 import { Build, Enemy, StatKey } from "./types";
 import { BuildForm } from "./components/BuildForm";
 import { EnemyForm } from "./components/EnemyForm";
-import { DamageChart } from "./components/DamageChart";
 import { ChartControls } from "./components/ChartControls";
 import { serializeState, deserializeState } from "./utils/urlState";
 import { ImportDialog } from "./components/ImportDialog";
 import { ConfirmDialog } from "./components/ConfirmDialog";
-import { DamageFormula } from "./components/DamageFormula";
 import { SkillConfigForm } from "./components/SkillConfigForm";
 import { Button } from "./components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs";
 import { Trash2, Share2 } from "lucide-react";
+
+// Lazy load heavy components
+const DamageChart = lazy(() => import("./components/DamageChart").then(m => ({ default: m.DamageChart })));
+const DamageFormula = lazy(() => import("./components/DamageFormula").then(m => ({ default: m.DamageFormula })));
 
 interface SkillConfig {
   skillPotency: number;
@@ -625,44 +627,48 @@ function App() {
           />
 
           <div className="min-h-[500px]">
-            <DamageChart
-              builds={builds}
-              enemy={currentEnemy}
-              xAxisStat={xAxisStat}
-              xAxisRange={xAxisRange}
-              yMetric={yMetric}
-              combatType={combatType}
-              attackDirection={attackDirection}
-              isPvP={isPvP}
-              skillPotency={skillConfig.skillPotency}
-              skillFlatAdd={skillConfig.skillFlatAdd}
-              hitsPerCast={skillConfig.hitsPerCast}
-              weakenSkillPotency={skillConfig.weakenSkillPotency}
-              weakenSkillFlatAdd={skillConfig.weakenSkillFlatAdd}
-              cooldownTime={skillConfig.cooldownTime}
-              castTime={skillConfig.castTime}
-              skillCooldownSpecialization={skillConfig.skillCooldownSpecialization}
-              useCDR={useCDR}
-              useAttackSpeed={useAttackSpeed}
-            />
+            <Suspense fallback={<div className="flex items-center justify-center h-[400px]">Loading chart...</div>}>
+              <DamageChart
+                builds={builds}
+                enemy={currentEnemy}
+                xAxisStat={xAxisStat}
+                xAxisRange={xAxisRange}
+                yMetric={yMetric}
+                combatType={combatType}
+                attackDirection={attackDirection}
+                isPvP={isPvP}
+                skillPotency={skillConfig.skillPotency}
+                skillFlatAdd={skillConfig.skillFlatAdd}
+                hitsPerCast={skillConfig.hitsPerCast}
+                weakenSkillPotency={skillConfig.weakenSkillPotency}
+                weakenSkillFlatAdd={skillConfig.weakenSkillFlatAdd}
+                cooldownTime={skillConfig.cooldownTime}
+                castTime={skillConfig.castTime}
+                skillCooldownSpecialization={skillConfig.skillCooldownSpecialization}
+                useCDR={useCDR}
+                useAttackSpeed={useAttackSpeed}
+              />
+            </Suspense>
           </div>
 
           {builds.length > 0 && builds[parseInt(activeBuildTab)] && (
-            <DamageFormula
-              build={builds[parseInt(activeBuildTab)]}
-              enemy={currentEnemy}
-              combatType={combatType}
-              attackDirection={attackDirection}
-              isPvP={isPvP}
-              skillPotency={skillConfig.skillPotency}
-              skillFlatAdd={skillConfig.skillFlatAdd}
-              hitsPerCast={skillConfig.hitsPerCast}
-              weakenSkillPotency={skillConfig.weakenSkillPotency}
-              weakenSkillFlatAdd={skillConfig.weakenSkillFlatAdd}
-              cooldownTime={skillConfig.cooldownTime}
-              castTime={skillConfig.castTime}
-              skillCooldownSpecialization={skillConfig.skillCooldownSpecialization}
-            />
+            <Suspense fallback={<div className="flex items-center justify-center h-[200px]">Loading formula...</div>}>
+              <DamageFormula
+                build={builds[parseInt(activeBuildTab)]}
+                enemy={currentEnemy}
+                combatType={combatType}
+                attackDirection={attackDirection}
+                isPvP={isPvP}
+                skillPotency={skillConfig.skillPotency}
+                skillFlatAdd={skillConfig.skillFlatAdd}
+                hitsPerCast={skillConfig.hitsPerCast}
+                weakenSkillPotency={skillConfig.weakenSkillPotency}
+                weakenSkillFlatAdd={skillConfig.weakenSkillFlatAdd}
+                cooldownTime={skillConfig.cooldownTime}
+                castTime={skillConfig.castTime}
+                skillCooldownSpecialization={skillConfig.skillCooldownSpecialization}
+              />
+            </Suspense>
           )}
         </div>
 

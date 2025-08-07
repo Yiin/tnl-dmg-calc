@@ -1,7 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Build, Enemy } from "../types";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { PrismLight as SyntaxHighlighter } from "react-syntax-highlighter";
+import javascript from "react-syntax-highlighter/dist/esm/languages/prism/javascript";
 import { oneDark as theme } from "react-syntax-highlighter/dist/esm/styles/prism";
+
+// Register only the language we need
+SyntaxHighlighter.registerLanguage("javascript", javascript);
 
 interface DamageFormulaProps {
   build: Build;

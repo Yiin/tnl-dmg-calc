@@ -1,3 +1,4 @@
+import { memo, useCallback } from "react";
 import { Enemy } from "../types";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Input } from "./ui/input";
@@ -8,18 +9,35 @@ import { X } from "lucide-react";
 interface EnemyFormProps {
   enemy: Enemy;
   onChange: (enemy: Enemy) => void;
+  onPropertyChange?: <K extends keyof Enemy>(key: K, value: Enemy[K]) => void;
   onRemove?: () => void;
 }
 
-export function EnemyForm({ enemy, onChange, onRemove }: EnemyFormProps) {
-  function handleInputChange(field: keyof Enemy, value: string) {
-    const numValue = parseFloat(value) || 0;
-    onChange({ ...enemy, [field]: numValue });
-  }
+export const EnemyForm = memo(function EnemyForm({ enemy, onChange, onPropertyChange, onRemove }: EnemyFormProps) {
+  const handleInputChange = useCallback(
+    (field: keyof Enemy, value: string) => {
+      const numValue = parseFloat(value) || 0;
+      // Use the more efficient property updater if available
+      if (onPropertyChange) {
+        onPropertyChange(field, numValue);
+      } else {
+        onChange({ ...enemy, [field]: numValue });
+      }
+    },
+    [enemy, onChange, onPropertyChange]
+  );
 
-  function handleNameChange(value: string) {
-    onChange({ ...enemy, name: value });
-  }
+  const handleNameChange = useCallback(
+    (value: string) => {
+      // Use the more efficient property updater if available
+      if (onPropertyChange) {
+        onPropertyChange('name', value);
+      } else {
+        onChange({ ...enemy, name: value });
+      }
+    },
+    [enemy, onChange, onPropertyChange]
+  );
 
   return (
     <Card>
@@ -319,4 +337,4 @@ export function EnemyForm({ enemy, onChange, onRemove }: EnemyFormProps) {
       </CardContent>
     </Card>
   );
-}
+});

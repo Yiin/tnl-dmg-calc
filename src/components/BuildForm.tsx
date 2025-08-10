@@ -1,3 +1,4 @@
+import { memo, useCallback } from "react";
 import { Build } from "../types";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Input } from "./ui/input";
@@ -9,6 +10,7 @@ import { X } from "lucide-react";
 interface BuildFormProps {
   build: Build;
   onChange: (build: Build) => void;
+  onPropertyChange?: <K extends keyof Build>(key: K, value: Build[K]) => void;
   onRemove?: () => void;
   useCDR?: boolean;
   useAttackSpeed?: boolean;
@@ -16,23 +18,40 @@ interface BuildFormProps {
   onUseAttackSpeedChange?: (value: boolean) => void;
 }
 
-export function BuildForm({ 
+export const BuildForm = memo(function BuildForm({ 
   build, 
-  onChange, 
+  onChange,
+  onPropertyChange, 
   onRemove,
   useCDR = true,
   useAttackSpeed = true,
   onUseCDRChange,
   onUseAttackSpeedChange
 }: BuildFormProps) {
-  function handleInputChange(field: keyof Build, value: string) {
-    const numValue = parseFloat(value) || 0;
-    onChange({ ...build, [field]: numValue });
-  }
+  const handleInputChange = useCallback(
+    (field: keyof Build, value: string) => {
+      const numValue = parseFloat(value) || 0;
+      // Use the more efficient property updater if available
+      if (onPropertyChange) {
+        onPropertyChange(field, numValue);
+      } else {
+        onChange({ ...build, [field]: numValue });
+      }
+    },
+    [build, onChange, onPropertyChange]
+  );
 
-  function handleNameChange(value: string) {
-    onChange({ ...build, name: value });
-  }
+  const handleNameChange = useCallback(
+    (value: string) => {
+      // Use the more efficient property updater if available
+      if (onPropertyChange) {
+        onPropertyChange('name', value);
+      } else {
+        onChange({ ...build, name: value });
+      }
+    },
+    [build, onChange, onPropertyChange]
+  );
 
   return (
     <Card>
@@ -572,4 +591,4 @@ export function BuildForm({
       </CardContent>
     </Card>
   );
-}
+});

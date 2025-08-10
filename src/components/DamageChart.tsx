@@ -1,4 +1,4 @@
-import { useMemo, useCallback, useRef } from "react";
+import { useMemo, useCallback, useRef, memo } from "react";
 import {
   LineChart,
   Line,
@@ -43,7 +43,7 @@ const COLORS = [
   "#d084d0",
 ];
 
-export function DamageChart({
+export const DamageChart = memo(function DamageChart({
   builds,
   enemy,
   xAxisStat,
@@ -63,7 +63,6 @@ export function DamageChart({
   useCDR = true,
   useAttackSpeed = true,
 }: DamageChartProps) {
-  console.log("Render DamageChart");
   // Determine if the stat belongs to build or enemy based on the stat name
   const statBelongsToBuild = useMemo(() => {
     const buildStats = [
@@ -180,6 +179,8 @@ export function DamageChart({
     skillCooldownSpecialization,
     weakenSkillPotency,
     weakenSkillFlatAdd,
+    useCDR,
+    useAttackSpeed,
   ]);
 
   const formatYAxis = useCallback(
@@ -208,11 +209,8 @@ export function DamageChart({
       // Check if we have a cached result
       const cached = tooltipCacheRef.current.get(cacheKey);
       if (cached) {
-        console.log("Using cached tooltip", Date.now());
         return cached;
       }
-
-      console.log("Computing new tooltip", Date.now());
 
       // The name parameter is the display name from the Line component
       // We need to find which build this corresponds to
@@ -346,4 +344,45 @@ export function DamageChart({
       </ResponsiveContainer>
     </div>
   );
-}
+},
+// Custom equality function to prevent unnecessary re-renders
+(prevProps, nextProps) => {
+  // Check if builds arrays are the same
+  if (prevProps.builds.length !== nextProps.builds.length) return false;
+  
+  // Deep compare builds if lengths are same
+  for (let i = 0; i < prevProps.builds.length; i++) {
+    const prevBuild = prevProps.builds[i];
+    const nextBuild = nextProps.builds[i];
+    
+    // Check if builds are structurally equal
+    if (JSON.stringify(prevBuild) !== JSON.stringify(nextBuild)) {
+      return false;
+    }
+  }
+  
+  // Check enemy
+  if (JSON.stringify(prevProps.enemy) !== JSON.stringify(nextProps.enemy)) {
+    return false;
+  }
+  
+  // Check all other props
+  return (
+    prevProps.xAxisStat === nextProps.xAxisStat &&
+    JSON.stringify(prevProps.xAxisRange) === JSON.stringify(nextProps.xAxisRange) &&
+    prevProps.yMetric === nextProps.yMetric &&
+    prevProps.combatType === nextProps.combatType &&
+    prevProps.attackDirection === nextProps.attackDirection &&
+    prevProps.isPvP === nextProps.isPvP &&
+    prevProps.skillPotency === nextProps.skillPotency &&
+    prevProps.skillFlatAdd === nextProps.skillFlatAdd &&
+    prevProps.hitsPerCast === nextProps.hitsPerCast &&
+    prevProps.weakenSkillPotency === nextProps.weakenSkillPotency &&
+    prevProps.weakenSkillFlatAdd === nextProps.weakenSkillFlatAdd &&
+    prevProps.cooldownTime === nextProps.cooldownTime &&
+    prevProps.castTime === nextProps.castTime &&
+    prevProps.skillCooldownSpecialization === nextProps.skillCooldownSpecialization &&
+    prevProps.useCDR === nextProps.useCDR &&
+    prevProps.useAttackSpeed === nextProps.useAttackSpeed
+  );
+});

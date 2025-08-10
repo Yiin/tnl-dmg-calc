@@ -22,6 +22,7 @@ interface AppState {
   };
   activeBuildTab: string;
   activeEnemyTab?: string;
+  speedLimiter?: 'cooldown' | 'castTime';
 }
 
 // Remove default values and undefined properties to minimize size
@@ -242,6 +243,8 @@ export function serializeState(state: Partial<AppState>): string {
     minified.t = state.activeBuildTab;
   if (state.activeEnemyTab && state.activeEnemyTab !== "0")
     minified.et = state.activeEnemyTab;
+  if (state.speedLimiter && state.speedLimiter !== "cooldown")
+    minified.sl = state.speedLimiter;
 
   // Compress and encode
   const json = JSON.stringify(minified);
@@ -297,6 +300,7 @@ export function deserializeState(hash: string): Partial<AppState> | null {
 
     if (minified.t) state.activeBuildTab = minified.t;
     if (minified.et) state.activeEnemyTab = minified.et;
+    if (minified.sl) state.speedLimiter = minified.sl;
 
     return state;
   } catch (error) {

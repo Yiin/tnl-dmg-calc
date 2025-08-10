@@ -133,6 +133,7 @@ const getInitialState = () => {
         skillConfig: urlState.skillConfig ? { ...defaultSkillConfig, ...urlState.skillConfig } : defaultSkillConfig,
         activeBuildTab: urlState.activeBuildTab || "0",
         activeEnemyTab: urlState.activeEnemyTab || "0",
+        speedLimiter: urlState.speedLimiter || 'cooldown',
       };
     }
   }
@@ -168,7 +169,7 @@ export const useStore = create<AppState>()(
       skillConfig: initialUrlState?.skillConfig || defaultSkillConfig,
       activeBuildTab: initialUrlState?.activeBuildTab || "0",
       activeEnemyTab: initialUrlState?.activeEnemyTab || "0",
-      speedLimiter: 'cooldown',
+      speedLimiter: initialUrlState?.speedLimiter || 'cooldown',
       
       // Build Actions
       addBuild: () => {
@@ -319,6 +320,7 @@ export const useStore = create<AppState>()(
           skillConfig: state.skillConfig,
           activeBuildTab: state.activeBuildTab,
           activeEnemyTab: state.activeEnemyTab,
+          speedLimiter: state.speedLimiter,
         };
         
         const hash = serializeState(currentState);
@@ -349,6 +351,7 @@ export const useStore = create<AppState>()(
             skillConfig: urlState.skillConfig ? { ...defaultSkillConfig, ...urlState.skillConfig } : defaultSkillConfig,
             activeBuildTab: urlState.activeBuildTab || "0",
             activeEnemyTab: urlState.activeEnemyTab || "0",
+            speedLimiter: urlState.speedLimiter || 'cooldown',
           });
         }
       },
@@ -394,7 +397,23 @@ export const useStore = create<AppState>()(
       storage: {
         getItem: (name) => {
           const str = localStorage.getItem(name);
-          return str ? JSON.parse(str) : null;
+          if (!str) return null;
+          
+          const data = JSON.parse(str);
+          
+          // Migration: Convert old useCDR/useAttackSpeed to new speedLimiter
+          if (data?.state && ('useCDR' in data.state || 'useAttackSpeed' in data.state)) {
+            // If old format exists, convert it
+            if (!data.state.speedLimiter) {
+              // Default to 'cooldown' mode if not set
+              data.state.speedLimiter = 'cooldown';
+            }
+            // Clean up old fields
+            delete data.state.useCDR;
+            delete data.state.useAttackSpeed;
+          }
+          
+          return data;
         },
         setItem: (name, value) => {
           // Debounce localStorage writes
@@ -416,6 +435,7 @@ export const useStore = create<AppState>()(
         skillConfig: state.skillConfig,
         activeBuildTab: state.activeBuildTab,
         activeEnemyTab: state.activeEnemyTab,
+        speedLimiter: state.speedLimiter,
       }),
       skipHydration: hasUrlHash, // Skip localStorage if we have URL state
     }

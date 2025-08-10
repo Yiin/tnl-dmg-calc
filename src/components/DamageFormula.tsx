@@ -170,8 +170,12 @@ export function DamageFormula({
     : 0;
   const actualCooldown = adjustedCooldown * (1 - cooldownReduction);
   
-  // Calculate DPS
-  const effectiveCooldown = Math.max(actualCooldown, actualCastTime);
+  // Calculate DPS based on skill type
+  // For skills with cooldowns: cast time + cooldown (cooldown starts AFTER cast)
+  // For spammable abilities: just cast time
+  const effectiveCooldown = cooldownTime > 0 
+    ? actualCastTime + actualCooldown  // Cooldown starts after cast completes
+    : actualCastTime;                   // No cooldown, can cast immediately after
   const dps = expectedDamage / effectiveCooldown;
 
   const formula = `// Throne & Liberty Damage Formula
@@ -380,10 +384,12 @@ ActualCooldown = AdjustedCooldown × (1 - CooldownReduction)
 //========================================
 // DPS CALCULATION
 //========================================
-// The skill can be used again after max(cooldown, cast time)
-EffectiveCooldown = max(ActualCooldown, ActualCastTime)
-                  = max(${actualCooldown.toFixed(2)}s, ${actualCastTime.toFixed(2)}s)
-                  = ${effectiveCooldown.toFixed(2)}s
+${cooldownTime > 0 ? `// Skill with cooldown: cooldown starts AFTER cast completes
+EffectiveCooldown = ActualCastTime + ActualCooldown
+                  = ${actualCastTime.toFixed(2)}s + ${actualCooldown.toFixed(2)}s
+                  = ${effectiveCooldown.toFixed(2)}s` : `// Spammable ability: no cooldown
+EffectiveCooldown = ActualCastTime
+                  = ${actualCastTime.toFixed(2)}s`}
 
 DPS = ExpectedDamage / EffectiveCooldown
     = ${expectedDamage.toFixed(1)} / ${effectiveCooldown.toFixed(2)}

@@ -430,26 +430,18 @@ export function calculateDPS(
     weakenSkillFlatAdd
   );
   
-  // Calculate the effective cooldown based on the limiting factor
+  // Always apply attack speed to cast time
+  const actualCastTime = calculateActualCastTime(castTime, build.attackSpeedTime);
+  
   let effectiveCooldown: number;
   
-  if (useCDR && !useAttackSpeed) {
-    // Cooldown-limited mode: only consider cooldown with CDR
-    effectiveCooldown = calculateActualCooldown(cooldownTime, build.cooldownSpeed, skillCooldownSpecialization);
-  } else if (!useCDR && useAttackSpeed) {
-    // Cast-time-limited mode: only consider cast time with attack speed
-    effectiveCooldown = calculateActualCastTime(castTime, build.attackSpeedTime);
+  if (useCDR) {
+    // Cooldown-limited mode (Skills): Cast time + Cooldown (cooldown starts AFTER cast)
+    const actualCooldown = calculateActualCooldown(cooldownTime, build.cooldownSpeed, skillCooldownSpecialization);
+    effectiveCooldown = actualCastTime + actualCooldown;
   } else {
-    // Both true (legacy) or both false: use the max of both
-    const actualCastTime = useAttackSpeed 
-      ? calculateActualCastTime(castTime, build.attackSpeedTime)
-      : castTime;
-    
-    const actualCooldown = useCDR
-      ? calculateActualCooldown(cooldownTime, build.cooldownSpeed, skillCooldownSpecialization)
-      : cooldownTime - skillCooldownSpecialization;
-    
-    effectiveCooldown = Math.max(actualCooldown, actualCastTime);
+    // Cast-time-limited mode (Spam/Auto): Only cast time matters, no cooldown
+    effectiveCooldown = actualCastTime;
   }
   
   return damage.expectedDamage / effectiveCooldown;

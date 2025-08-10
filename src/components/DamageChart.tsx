@@ -81,7 +81,6 @@ export const DamageChart = memo(function DamageChart({
       "skillDamageBoost",
       "bonusDamage",
       "attackSpeedTime",
-      "attackSpeedPercent",
       "cooldownSpeed",
     ];
     return buildStats.includes(xAxisStat);

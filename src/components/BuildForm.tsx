@@ -5,7 +5,13 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Button } from "./ui/button";
 import { Checkbox } from "./ui/checkbox";
-import { X } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "./ui/tooltip";
+import { X, Info } from "lucide-react";
 
 interface BuildFormProps {
   build: Build;
@@ -54,8 +60,9 @@ export const BuildForm = memo(function BuildForm({
   );
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-6">
+    <TooltipProvider>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-6">
         <CardTitle className="text-lg">
           <Input
             type="text"
@@ -187,26 +194,38 @@ export const BuildForm = memo(function BuildForm({
               </div>
             )}
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3">
             <div className="space-y-1">
-              <Label htmlFor="attackSpeedPercent" className="text-xs">
-                Attack Speed %
-              </Label>
-              <Input
-                id="attackSpeedPercent"
-                type="number"
-                value={build.attackSpeedPercent || 0}
-                onChange={(e) =>
-                  handleInputChange("attackSpeedPercent", e.target.value)
-                }
-                className="h-8 text-xs"
-                placeholder="63"
-              />
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="attackSpeedTime" className="text-xs">
-                Attack Speed (s)
-              </Label>
+              <div className="flex items-center gap-1">
+                <Label htmlFor="attackSpeedTime" className="text-xs">
+                  Attack Speed (seconds)
+                </Label>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Info className="h-3 w-3 text-muted-foreground cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="max-w-xs">
+                      Time between auto attacks in seconds.
+                      <br />
+                      <br />
+                      <strong>⚠️ Important:</strong> Attack speed may inflate DPS 
+                      calculations in charts. Most skills are primarily affected by 
+                      Cooldown Speed, not Attack Speed.
+                      <br />
+                      <br />
+                      Attack Speed only affects:
+                      <br />
+                      • Auto attack frequency
+                      <br />
+                      • Cast animations/spell cast time
+                      <br />
+                      <br />
+                      For accurate skill DPS, focus on Cooldown Speed instead.
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
               <Input
                 id="attackSpeedTime"
                 type="number"
@@ -590,5 +609,6 @@ export const BuildForm = memo(function BuildForm({
         </div>
       </CardContent>
     </Card>
+    </TooltipProvider>
   );
 });

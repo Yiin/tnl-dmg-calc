@@ -1,6 +1,13 @@
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "./ui/tooltip";
+import { Info } from "lucide-react";
 
 interface SkillConfig {
   skillPotency: number;
@@ -25,32 +32,74 @@ export function SkillConfigForm({ config, onChange }: SkillConfigFormProps) {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg">Skill Configuration</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-3 gap-3">
+    <TooltipProvider>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Skill Configuration</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-3 gap-3">
+            <div className="space-y-1">
+              <div className="flex items-center gap-1">
+                <Label htmlFor="skillPotency" className="text-xs">
+                  Skill Potency
+                </Label>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Info className="h-3 w-3 text-muted-foreground cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="max-w-xs">
+                      Skill damage multiplier as a decimal.
+                      <br />
+                      Examples:
+                      <br />
+                      • 120% base damage = 1.2
+                      <br />
+                      • 85% base damage = 0.85
+                      <br />
+                      • 250% base damage = 2.5
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+              <Input
+                id="skillPotency"
+                type="number"
+                step="0.1"
+                value={config.skillPotency}
+                onChange={(e) =>
+                  handleInputChange("skillPotency", e.target.value)
+                }
+                className="h-8 text-xs"
+                placeholder="1.0"
+              />
+            </div>
           <div className="space-y-1">
-            <Label htmlFor="skillPotency" className="text-xs">
-              Skill Potency
-            </Label>
-            <Input
-              id="skillPotency"
-              type="number"
-              step="0.1"
-              value={config.skillPotency}
-              onChange={(e) =>
-                handleInputChange("skillPotency", e.target.value)
-              }
-              className="h-8 text-xs"
-              placeholder="1.0"
-            />
-          </div>
-          <div className="space-y-1">
-            <Label htmlFor="skillFlatAdd" className="text-xs">
-              Skill Flat Add
-            </Label>
+            <div className="flex items-center gap-1">
+              <Label htmlFor="skillFlatAdd" className="text-xs">
+                Skill Flat Add
+              </Label>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Info className="h-3 w-3 text-muted-foreground cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="max-w-xs">
+                    Flat damage bonus added after skill potency.
+                    <br />
+                    Formula: (Base DMG × Potency) + Flat Add
+                    <br />
+                    <br />
+                    Example with 1000 base damage:
+                    <br />
+                    • 1.2 potency + 500 flat = 1700 total
+                    <br />
+                    • (1000 × 1.2) + 500 = 1700
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
             <Input
               id="skillFlatAdd"
               type="number"
@@ -171,5 +220,6 @@ export function SkillConfigForm({ config, onChange }: SkillConfigFormProps) {
         </p>
       </CardContent>
     </Card>
+    </TooltipProvider>
   );
 }

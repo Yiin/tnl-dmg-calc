@@ -371,22 +371,13 @@ export function calculateDamage(
 export function calculateActualCastTime(
   baseCastTime: number,
   attackSpeedTime?: number,
-  attackSpeedPercent?: number,
   baseAttackSpeed: number = 1.0
 ): number {
-  // If we have the actual attack speed time from import, use it to calculate the multiplier
-  if (attackSpeedTime) {
+  // If we have the actual attack speed time, use it to calculate the multiplier
+  if (attackSpeedTime && attackSpeedTime > 0) {
     // The attack speed time represents the actual interval between attacks
     // We use this to scale the cast time proportionally
     const speedMultiplier = attackSpeedTime / baseAttackSpeed;
-    return baseCastTime * speedMultiplier;
-  }
-  
-  // If we have attack speed percentage, use it to calculate the multiplier
-  if (attackSpeedPercent && attackSpeedPercent > 0) {
-    // Attack speed percentage increases the speed of attacks
-    // 63% attack speed means attacks are 163% of normal speed
-    const speedMultiplier = 1 / (1 + attackSpeedPercent / 100);
     return baseCastTime * speedMultiplier;
   }
   
@@ -443,7 +434,7 @@ export function calculateDPS(
   
   // Calculate actual cast time based on attack speed
   const actualCastTime = useAttackSpeed 
-    ? calculateActualCastTime(castTime, build.attackSpeedTime, build.attackSpeedPercent)
+    ? calculateActualCastTime(castTime, build.attackSpeedTime)
     : castTime;
   
   // Calculate actual cooldown based on cooldown speed

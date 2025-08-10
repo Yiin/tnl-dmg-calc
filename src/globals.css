@@ -81,3 +81,29 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer components {
+  /* Custom scrollbar styles for tab lists */
+  .tabs-scrollable {
+    scrollbar-width: thin;
+    scrollbar-color: oklch(0.5 0 0) oklch(0.269 0 0);
+  }
+  
+  .tabs-scrollable::-webkit-scrollbar {
+    height: 6px;
+  }
+  
+  .tabs-scrollable::-webkit-scrollbar-track {
+    background: oklch(0.269 0 0);
+    border-radius: 3px;
+  }
+  
+  .tabs-scrollable::-webkit-scrollbar-thumb {
+    background: oklch(0.5 0 0);
+    border-radius: 3px;
+  }
+  
+  .tabs-scrollable::-webkit-scrollbar-thumb:hover {
+    background: oklch(0.6 0 0);
+  }
+}

@@ -16,11 +16,13 @@ describe('Attack Speed Calculations', () => {
     // With attack speed time of 0.42s (from the example)
     expect(calculateActualCastTime(3.6, 0.42)).toBeCloseTo(1.512, 3);
     
-    // With attack speed percentage of 63% (163% of normal speed)
-    expect(calculateActualCastTime(3.6, undefined, 63)).toBeCloseTo(2.209, 3);
+    // Faster attack speed time = shorter cast time
+    // With attack speed time of 0.2s (5x faster than base)
+    expect(calculateActualCastTime(3.6, 0.2)).toBeCloseTo(0.72, 10);
     
-    // With attack speed percentage of 100% (200% of normal speed)
-    expect(calculateActualCastTime(3.6, undefined, 100)).toBe(1.8);
+    // Slower attack speed time = longer cast time
+    // With attack speed time of 2.0s (2x slower than base)
+    expect(calculateActualCastTime(3.6, 2.0)).toBeCloseTo(7.2, 10);
   });
 
   it('should use attack speed in DPS calculations', () => {
@@ -72,7 +74,7 @@ describe('Attack Speed Calculations', () => {
     expect(actualRatio).toBeCloseTo(expectedRatio, 1);
   });
   
-  it('should use attack speed percentage in DPS calculations when attackSpeedTime is not available', () => {
+  it('should use attack speed time in DPS calculations for improved performance', () => {
     const build: Build = {
       name: 'Test Build',
       minDMG: 100,
@@ -99,8 +101,8 @@ describe('Attack Speed Calculations', () => {
       false // PvE
     );
     
-    const dpsWithAttackSpeedPercent = calculateDPS(
-      { ...build, attackSpeedPercent: 100 }, // 100% attack speed = 200% of normal
+    const dpsWithAttackSpeedTime = calculateDPS(
+      { ...build, attackSpeedTime: 0.5 }, // 0.5s attack interval (2x faster than base 1.0s)
       enemy,
       'melee',
       'front',
@@ -110,16 +112,17 @@ describe('Attack Speed Calculations', () => {
     );
     
     // DPS should be higher with faster attack speed
-    expect(dpsWithAttackSpeedPercent).toBeGreaterThan(dpsWithoutAttackSpeed);
+    expect(dpsWithAttackSpeedTime).toBeGreaterThan(dpsWithoutAttackSpeed);
     
-    // With 100% attack speed, cast time becomes 1s instead of 2s
+    // With 0.5s attack speed time (base 1.0s), cast time becomes 1s instead of 2s
     // Since cooldown is 1s and cast time reduces from 2s to 1s,
     // the effective cooldown changes from 2s (max of 1s cooldown and 2s cast) to 1s
     const expectedRatio = 2; // 2s effective cooldown / 1s effective cooldown
-    const actualRatio = dpsWithAttackSpeedPercent / dpsWithoutAttackSpeed;
-    expect(actualRatio).toBeCloseTo(expectedRatio, 1);
+    const actualRatio = dpsWithAttackSpeedTime / dpsWithoutAttackSpeed;
+    expect(actualRatio).toBeCloseTo(expectedRatio, 2);
   });
 });
+
 
 describe('Cooldown Speed Calculations', () => {
   it('should calculate actual cooldown based on cooldown speed', () => {

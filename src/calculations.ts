@@ -370,15 +370,13 @@ export function calculateDamage(
 
 export function calculateActualCastTime(
   baseCastTime: number,
-  attackSpeedTime?: number,
-  baseAttackSpeed: number = 1.0
+  attackSpeedTime?: number
 ): number {
-  // If we have the actual attack speed time, use it to calculate the multiplier
+  // If we have the actual attack speed time, use it to scale cast time
   if (attackSpeedTime && attackSpeedTime > 0) {
     // The attack speed time represents the actual interval between attacks
-    // We use this to scale the cast time proportionally
-    const speedMultiplier = attackSpeedTime / baseAttackSpeed;
-    return baseCastTime * speedMultiplier;
+    // Cast time scales proportionally with attack speed
+    return baseCastTime * attackSpeedTime;
   }
   
   // If no attack speed provided, return base cast time
@@ -432,18 +430,27 @@ export function calculateDPS(
     weakenSkillFlatAdd
   );
   
-  // Calculate actual cast time based on attack speed
-  const actualCastTime = useAttackSpeed 
-    ? calculateActualCastTime(castTime, build.attackSpeedTime)
-    : castTime;
+  // Calculate the effective cooldown based on the limiting factor
+  let effectiveCooldown: number;
   
-  // Calculate actual cooldown based on cooldown speed
-  const actualCooldown = useCDR
-    ? calculateActualCooldown(cooldownTime, build.cooldownSpeed, skillCooldownSpecialization)
-    : cooldownTime - skillCooldownSpecialization;
-  
-  // The effective cooldown is the max of actual cooldown and actual cast time
-  const effectiveCooldown = Math.max(actualCooldown, actualCastTime);
+  if (useCDR && !useAttackSpeed) {
+    // Cooldown-limited mode: only consider cooldown with CDR
+    effectiveCooldown = calculateActualCooldown(cooldownTime, build.cooldownSpeed, skillCooldownSpecialization);
+  } else if (!useCDR && useAttackSpeed) {
+    // Cast-time-limited mode: only consider cast time with attack speed
+    effectiveCooldown = calculateActualCastTime(castTime, build.attackSpeedTime);
+  } else {
+    // Both true (legacy) or both false: use the max of both
+    const actualCastTime = useAttackSpeed 
+      ? calculateActualCastTime(castTime, build.attackSpeedTime)
+      : castTime;
+    
+    const actualCooldown = useCDR
+      ? calculateActualCooldown(cooldownTime, build.cooldownSpeed, skillCooldownSpecialization)
+      : cooldownTime - skillCooldownSpecialization;
+    
+    effectiveCooldown = Math.max(actualCooldown, actualCastTime);
+  }
   
   return damage.expectedDamage / effectiveCooldown;
 }

@@ -30,8 +30,7 @@ interface AppState {
   skillConfig: SkillConfig;
   activeBuildTab: string;
   activeEnemyTab: string;
-  useCDR: boolean;
-  useAttackSpeed: boolean;
+  speedLimiter: 'cooldown' | 'castTime';
   
   // Actions - Builds
   addBuild: () => void;
@@ -57,8 +56,7 @@ interface AppState {
   setAttackDirection: (direction: "front" | "side" | "back") => void;
   setIsPvP: (isPvP: boolean) => void;
   setSkillConfig: (config: SkillConfig) => void;
-  setUseCDR: (use: boolean) => void;
-  setUseAttackSpeed: (use: boolean) => void;
+  setSpeedLimiter: (limiter: 'cooldown' | 'castTime') => void;
   
   // Actions - General
   clearAll: () => void;
@@ -84,6 +82,7 @@ export const defaultBuild: Build = {
   magicHit: 2000,
   skillDamageBoost: 0,
   bonusDamage: 0,
+  attackSpeedTime: 1
 };
 
 export const defaultSkillConfig: SkillConfig = {
@@ -169,8 +168,7 @@ export const useStore = create<AppState>()(
       skillConfig: initialUrlState?.skillConfig || defaultSkillConfig,
       activeBuildTab: initialUrlState?.activeBuildTab || "0",
       activeEnemyTab: initialUrlState?.activeEnemyTab || "0",
-      useCDR: true,
-      useAttackSpeed: true,
+      speedLimiter: 'cooldown',
       
       // Build Actions
       addBuild: () => {
@@ -290,8 +288,7 @@ export const useStore = create<AppState>()(
       setAttackDirection: (direction) => set({ attackDirection: direction }),
       setIsPvP: (isPvP) => set({ isPvP }),
       setSkillConfig: (config) => set({ skillConfig: config }),
-      setUseCDR: (use) => set({ useCDR: use }),
-      setUseAttackSpeed: (use) => set({ useAttackSpeed: use }),
+      setSpeedLimiter: (limiter) => set({ speedLimiter: limiter }),
       
       // General Actions
       clearAll: () => {

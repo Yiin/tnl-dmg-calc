@@ -30,8 +30,7 @@ interface DamageChartProps {
   cooldownTime?: number;
   castTime?: number;
   skillCooldownSpecialization?: number;
-  useCDR?: boolean;
-  useAttackSpeed?: boolean;
+  speedLimiter?: 'cooldown' | 'castTime';
 }
 
 const COLORS = [
@@ -60,8 +59,7 @@ export const DamageChart = memo(function DamageChart({
   cooldownTime = 10,
   castTime = 1,
   skillCooldownSpecialization = 0,
-  useCDR = true,
-  useAttackSpeed = true,
+  speedLimiter = 'cooldown',
 }: DamageChartProps) {
   // Determine if the stat belongs to build or enemy based on the stat name
   const statBelongsToBuild = useMemo(() => {
@@ -135,8 +133,8 @@ export const DamageChart = memo(function DamageChart({
             weakenSkillPotency,
             weakenSkillFlatAdd,
             skillCooldownSpecialization,
-            useCDR,
-            useAttackSpeed
+            speedLimiter === 'cooldown',  // useCDR
+            speedLimiter === 'castTime'    // useAttackSpeed
           );
           point[`build${index}`] = dps;
         } else {
@@ -178,8 +176,7 @@ export const DamageChart = memo(function DamageChart({
     skillCooldownSpecialization,
     weakenSkillPotency,
     weakenSkillFlatAdd,
-    useCDR,
-    useAttackSpeed,
+    speedLimiter,
   ]);
 
   const formatYAxis = useCallback(
@@ -382,7 +379,6 @@ export const DamageChart = memo(function DamageChart({
     prevProps.cooldownTime === nextProps.cooldownTime &&
     prevProps.castTime === nextProps.castTime &&
     prevProps.skillCooldownSpecialization === nextProps.skillCooldownSpecialization &&
-    prevProps.useCDR === nextProps.useCDR &&
-    prevProps.useAttackSpeed === nextProps.useAttackSpeed
+    prevProps.speedLimiter === nextProps.speedLimiter
   );
 });

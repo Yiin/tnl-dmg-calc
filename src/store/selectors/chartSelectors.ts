@@ -12,8 +12,7 @@ export const useChartConfig = () => {
       attackDirection: state.attackDirection,
       isPvP: state.isPvP,
       skillConfig: state.skillConfig,
-      useCDR: state.useCDR,
-      useAttackSpeed: state.useAttackSpeed,
+      speedLimiter: state.speedLimiter,
     }))
   );
 };

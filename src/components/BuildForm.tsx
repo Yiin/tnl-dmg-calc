@@ -18,10 +18,8 @@ interface BuildFormProps {
   onChange: (build: Build) => void;
   onPropertyChange?: <K extends keyof Build>(key: K, value: Build[K]) => void;
   onRemove?: () => void;
-  useCDR?: boolean;
-  useAttackSpeed?: boolean;
-  onUseCDRChange?: (value: boolean) => void;
-  onUseAttackSpeedChange?: (value: boolean) => void;
+  speedLimiter?: 'cooldown' | 'castTime';
+  onSpeedLimiterChange?: (value: 'cooldown' | 'castTime') => void;
 }
 
 export const BuildForm = memo(function BuildForm({ 
@@ -29,10 +27,8 @@ export const BuildForm = memo(function BuildForm({
   onChange,
   onPropertyChange, 
   onRemove,
-  useCDR = true,
-  useAttackSpeed = true,
-  onUseCDRChange,
-  onUseAttackSpeedChange
+  speedLimiter = 'cooldown',
+  onSpeedLimiterChange
 }: BuildFormProps) {
   const handleInputChange = useCallback(
     (field: keyof Build, value: string) => {
@@ -177,23 +173,9 @@ export const BuildForm = memo(function BuildForm({
         </div>
 
         <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <h4 className="text-sm font-medium text-muted-foreground">
-              Attack Speed
-            </h4>
-            {onUseAttackSpeedChange && (
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="use-attack-speed"
-                  checked={useAttackSpeed}
-                  onCheckedChange={onUseAttackSpeedChange}
-                />
-                <Label htmlFor="use-attack-speed" className="text-xs font-normal">
-                  Apply to DPS
-                </Label>
-              </div>
-            )}
-          </div>
+          <h4 className="text-sm font-medium text-muted-foreground">
+            Attack Speed
+          </h4>
           <div className="grid grid-cols-1 gap-3">
             <div className="space-y-1">
               <div className="flex items-center gap-1">
@@ -241,24 +223,48 @@ export const BuildForm = memo(function BuildForm({
           </div>
         </div>
 
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
+        {onSpeedLimiterChange && (
+          <div className="space-y-2">
             <h4 className="text-sm font-medium text-muted-foreground">
-              Cooldown Speed
+              DPS Calculation Mode
             </h4>
-            {onUseCDRChange && (
+            <div className="flex items-center space-x-4 p-2 rounded-md bg-muted/50">
               <div className="flex items-center space-x-2">
                 <Checkbox
-                  id="use-cdr"
-                  checked={useCDR}
-                  onCheckedChange={onUseCDRChange}
+                  id="cooldown-limited"
+                  checked={speedLimiter === 'cooldown'}
+                  onCheckedChange={(checked) => {
+                    if (checked) onSpeedLimiterChange('cooldown');
+                  }}
                 />
-                <Label htmlFor="use-cdr" className="text-xs font-normal">
-                  Apply to DPS
+                <Label htmlFor="cooldown-limited" className="text-xs font-normal cursor-pointer">
+                  Cooldown Limited (Skills)
                 </Label>
               </div>
-            )}
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="cast-time-limited"
+                  checked={speedLimiter === 'castTime'}
+                  onCheckedChange={(checked) => {
+                    if (checked) onSpeedLimiterChange('castTime');
+                  }}
+                />
+                <Label htmlFor="cast-time-limited" className="text-xs font-normal cursor-pointer">
+                  Cast Time Limited (Spam)
+                </Label>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Skills: Use CDR for cooldown-based abilities.
+              Spam: Use Attack Speed for spammable/auto attacks.
+            </p>
           </div>
+        )}
+
+        <div className="space-y-2">
+          <h4 className="text-sm font-medium text-muted-foreground">
+            Cooldown Speed
+          </h4>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
               <Label htmlFor="cooldownSpeed" className="text-xs">

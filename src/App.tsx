@@ -40,10 +40,8 @@ const BuildTabs = memo(() => {
   const setShowClearConfirm = useUIStore((state) => state.setShowClearConfirm);
   
   const shareState = useStore((state) => state.shareState);
-  const useCDR = useStore((state) => state.useCDR);
-  const useAttackSpeed = useStore((state) => state.useAttackSpeed);
-  const setUseCDR = useStore((state) => state.setUseCDR);
-  const setUseAttackSpeed = useStore((state) => state.setUseAttackSpeed);
+  const speedLimiter = useStore((state) => state.speedLimiter);
+  const setSpeedLimiter = useStore((state) => state.setSpeedLimiter);
 
   return (
     <div className="lg:col-span-1 space-y-6 overflow-y-auto">
@@ -95,16 +93,16 @@ const BuildTabs = memo(() => {
             className="w-full"
           >
             <TabsList
-              className="grid w-full"
+              className="flex w-full overflow-x-auto overflow-y-hidden tabs-scrollable"
               style={{
-                gridTemplateColumns: `repeat(${builds.length}, 1fr)`,
+                flexWrap: "nowrap",
               }}
             >
               {builds.map((build: any, index: number) => (
                 <TabsTrigger
                   key={index}
                   value={index.toString()}
-                  className="text-xs"
+                  className="text-xs flex-shrink-0 min-w-[100px]"
                 >
                   {build.name || `Build ${index + 1}`}
                 </TabsTrigger>
@@ -125,10 +123,8 @@ const BuildTabs = memo(() => {
                     updateBuildProperty(index, key, value)
                   }
                   onRemove={() => removeBuild(index)}
-                  useCDR={useCDR}
-                  useAttackSpeed={useAttackSpeed}
-                  onUseCDRChange={setUseCDR}
-                  onUseAttackSpeedChange={setUseAttackSpeed}
+                  speedLimiter={speedLimiter}
+                  onSpeedLimiterChange={setSpeedLimiter}
                 />
               </TabsContent>
             ))}
@@ -182,16 +178,16 @@ const EnemyTabs = memo(() => {
             className="w-full"
           >
             <TabsList
-              className="grid w-full"
+              className="flex w-full overflow-x-auto overflow-y-hidden tabs-scrollable"
               style={{
-                gridTemplateColumns: `repeat(${enemies.length}, 1fr)`,
+                flexWrap: "nowrap",
               }}
             >
               {enemies.map((enemy: any, index: number) => (
                 <TabsTrigger
                   key={index}
                   value={index.toString()}
-                  className="text-xs"
+                  className="text-xs flex-shrink-0 min-w-[100px]"
                 >
                   {enemy.name || `Enemy ${index + 1}`}
                 </TabsTrigger>
@@ -413,8 +409,7 @@ function App() {
                 cooldownTime={chartConfig.skillConfig.cooldownTime}
                 castTime={chartConfig.skillConfig.castTime}
                 skillCooldownSpecialization={chartConfig.skillConfig.skillCooldownSpecialization}
-                useCDR={chartConfig.useCDR}
-                useAttackSpeed={chartConfig.useAttackSpeed}
+                speedLimiter={chartConfig.speedLimiter}
               />
             </Suspense>
           </div>

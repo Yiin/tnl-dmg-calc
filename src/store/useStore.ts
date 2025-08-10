@@ -396,33 +396,55 @@ export const useStore = create<AppState>()(
       name: 'tnl-damage-calc-storage',
       storage: {
         getItem: (name) => {
-          const str = localStorage.getItem(name);
-          
-          // Check if we have old format data that needs migration
+          // Check for old format data first
           const oldBuilds = localStorage.getItem('tnl-damage-calc-builds');
           const oldEnemies = localStorage.getItem('tnl-damage-calc-enemies');
           
-          if (!str && (oldBuilds || oldEnemies)) {
-            // Migrate from old format to new format
-            const migratedData: any = {
-              state: {
-                builds: oldBuilds ? JSON.parse(oldBuilds) : [],
-                enemies: oldEnemies ? JSON.parse(oldEnemies) : [],
-                xAxisStat: JSON.parse(localStorage.getItem('tnl-damage-calc-x-axis-stat') || '"meleeEndurance"'),
-                xAxisRange: JSON.parse(localStorage.getItem('tnl-damage-calc-x-axis-range') || '{"min":0,"max":3000,"step":100}'),
-                yMetric: JSON.parse(localStorage.getItem('tnl-damage-calc-y-metric') || '"expectedDamage"'),
-                combatType: JSON.parse(localStorage.getItem('tnl-damage-calc-combat-type') || '"melee"'),
-                attackDirection: JSON.parse(localStorage.getItem('tnl-damage-calc-attack-direction') || '"front"'),
-                isPvP: JSON.parse(localStorage.getItem('tnl-damage-calc-is-pvp') || 'true'),
-                skillConfig: JSON.parse(localStorage.getItem('tnl-damage-calc-skill-config') || JSON.stringify(defaultSkillConfig)),
-                activeBuildTab: JSON.parse(localStorage.getItem('tnl-damage-calc-active-build-tab') || '"0"'),
-                activeEnemyTab: JSON.parse(localStorage.getItem('tnl-damage-calc-active-enemy-tab') || '"0"'),
-                speedLimiter: 'cooldown'
-              },
-              version: 0
+          // Get current storage
+          const str = localStorage.getItem(name);
+          let data = str ? JSON.parse(str) : null;
+          
+          // Check if we need to migrate
+          const needsMigration = (oldBuilds || oldEnemies) && 
+                                (!data?.state?.builds?.length || !data?.state?.enemies?.length);
+          
+          if (needsMigration) {
+            console.log('Migrating from old localStorage format...');
+            console.log('Old builds found:', !!oldBuilds);
+            console.log('Old enemies found:', !!oldEnemies);
+            
+            // Parse old data
+            const buildsData = oldBuilds ? JSON.parse(oldBuilds) : [];
+            const enemiesData = oldEnemies ? JSON.parse(oldEnemies) : [];
+            
+            // Create or update the data structure
+            if (!data) {
+              data = { state: {}, version: 0 };
+            }
+            
+            // Migrate all the data
+            data.state = {
+              ...data.state,
+              builds: buildsData.length > 0 ? buildsData : (data.state.builds || []),
+              enemies: enemiesData.length > 0 ? enemiesData : (data.state.enemies || []),
+              xAxisStat: JSON.parse(localStorage.getItem('tnl-damage-calc-x-axis-stat') || '"meleeEndurance"'),
+              xAxisRange: JSON.parse(localStorage.getItem('tnl-damage-calc-x-axis-range') || '{"min":0,"max":3000,"step":100}'),
+              yMetric: JSON.parse(localStorage.getItem('tnl-damage-calc-y-metric') || '"expectedDamage"'),
+              combatType: JSON.parse(localStorage.getItem('tnl-damage-calc-combat-type') || '"melee"'),
+              attackDirection: JSON.parse(localStorage.getItem('tnl-damage-calc-attack-direction') || '"front"'),
+              isPvP: JSON.parse(localStorage.getItem('tnl-damage-calc-is-pvp') || 'true'),
+              skillConfig: JSON.parse(localStorage.getItem('tnl-damage-calc-skill-config') || JSON.stringify(defaultSkillConfig)),
+              activeBuildTab: JSON.parse(localStorage.getItem('tnl-damage-calc-active-build-tab') || '"0"'),
+              activeEnemyTab: JSON.parse(localStorage.getItem('tnl-damage-calc-active-enemy-tab') || '"0"'),
+              speedLimiter: data.state.speedLimiter || 'cooldown'
             };
             
-            // Clean up old keys after migration
+            console.log('Migrated data:', data);
+            
+            // Save migrated data immediately
+            localStorage.setItem(name, JSON.stringify(data));
+            
+            // Clean up old keys after successful migration
             localStorage.removeItem('tnl-damage-calc-builds');
             localStorage.removeItem('tnl-damage-calc-enemies');
             localStorage.removeItem('tnl-damage-calc-x-axis-stat');
@@ -435,26 +457,10 @@ export const useStore = create<AppState>()(
             localStorage.removeItem('tnl-damage-calc-active-build-tab');
             localStorage.removeItem('tnl-damage-calc-active-enemy-tab');
             
-            // Save migrated data
-            localStorage.setItem(name, JSON.stringify(migratedData));
-            return migratedData;
+            console.log('Migration complete, old keys removed');
           }
           
-          if (!str) return null;
-          
-          const data = JSON.parse(str);
-          
-          // Check if current storage has empty builds/enemies but old keys exist
-          if (data?.state && oldBuilds && data.state.builds?.length === 0) {
-            data.state.builds = JSON.parse(oldBuilds);
-            // Clean up old key
-            localStorage.removeItem('tnl-damage-calc-builds');
-          }
-          if (data?.state && oldEnemies && data.state.enemies?.length === 0) {
-            data.state.enemies = JSON.parse(oldEnemies);
-            // Clean up old key
-            localStorage.removeItem('tnl-damage-calc-enemies');
-          }
+          if (!data) return null;
           
           // Migration: Convert old useCDR/useAttackSpeed to new speedLimiter
           if (data?.state && ('useCDR' in data.state || 'useAttackSpeed' in data.state)) {

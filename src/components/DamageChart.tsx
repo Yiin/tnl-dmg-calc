@@ -309,6 +309,7 @@ export const DamageChart = memo(function DamageChart({
             contentStyle={tooltipContentStyle}
             labelStyle={tooltipLabelStyle}
             itemStyle={tooltipItemStyle}
+            itemSorter={(item: any) => -item.value}
           />
           <Legend align="right" />
 
